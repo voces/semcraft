@@ -1,24 +1,23 @@
 import { Fragment, h, render } from "preact";
 import { useEffect, useRef } from "preact/hooks";
-import { controls, setTransmit } from "./client/controls.ts";
-import { keyboard } from "./client/keyboard.ts";
-import { mouse } from "./client/systems/mouse.ts";
-import { moveAlongClient, moveToClient } from "./client/systems/movement.ts";
-import { three } from "./client/systems/three.ts";
-import { setHero } from "./hero.ts";
-import { newSemcraft } from "./semcraft.ts";
-import { withSemcraft, wrapSemcraft } from "./semcraftContext.ts";
+import { controls, setTransmit } from "./controls.ts";
+import { keyboard } from "./keyboard.ts";
+import { mouse } from "./systems/mouse.ts";
+import { moveAlongClient, moveToClient } from "./systems/movement.ts";
+import { three } from "./systems/three.ts";
+import { setHero } from "../hero.ts";
+import { newSemcraft } from "../semcraft.ts";
+import { withSemcraft, wrapSemcraft } from "../semcraftContext.ts";
 
 const newClient = (canvas: HTMLCanvasElement) => {
   const semcraft = newSemcraft();
 
   // Setup local server
-  const server = new SharedWorker("./js/localserver.js", { type: "module" });
+  const server = new SharedWorker("./js/server/index.js", { type: "module" });
   server.port.start();
   server.port.addEventListener(
     "message",
     wrapSemcraft(semcraft, (ev) => {
-      console.log(JSON.stringify(ev.data));
       if (Array.isArray(ev.data)) semcraft.patch(ev.data);
       else {
         setHero(ev.data);

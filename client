@@ -1,7 +1,0 @@
-esbuild "$@" \
-    src/client.tsx \
-    src/localserver.ts \
-    --bundle --format=esm --tsconfig=deno.jsonc \
-    --external:three --external:preact/hooks --external:preact \
-    --outdir=public/js
-    

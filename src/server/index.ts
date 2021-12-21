@@ -1,14 +1,14 @@
-import { WriteLogEntry } from "./core/App.ts";
-import { Entity } from "./core/Entity.ts";
-import { setHero } from "./hero.ts";
-import { newSemcraft } from "./semcraft.ts";
-import { withSemcraft, wrapSemcraft } from "./semcraftContext.ts";
-import { actions } from "./server/actions/index.ts";
-import { currentGrid, newGrid } from "./server/systems/grid.ts";
-import { moveAlongServer, moveToServer } from "./server/systems/movement.ts";
-import { timers } from "./server/systems/timers.ts";
-import { tiles } from "./server/tiles.ts";
-import { Grid } from "./util/Grid.ts";
+import { WriteLogEntry } from "../core/App.ts";
+import { Entity } from "../core/Entity.ts";
+import { setHero } from "../hero.ts";
+import { newSemcraft } from "../semcraft.ts";
+import { withSemcraft, wrapSemcraft } from "../semcraftContext.ts";
+import { actions } from "./actions/index.ts";
+import { currentGrid, newGrid } from "./systems/grid.ts";
+import { moveAlongServer, moveToServer } from "./systems/movement.ts";
+import { timers } from "./systems/timers.ts";
+import { tiles } from "./tiles.ts";
+import { Grid } from "../util/Grid.ts";
 
 const semcraft = newSemcraft();
 
