@@ -21,7 +21,7 @@ export type App = {
   ) => void;
 
   /** Remove the entity from the app and all systems. */
-  clear: (entity: Entity) => void;
+  delete: (entity: Entity) => void;
 
   /** Add an entity to the App. */
   add: (partial: Partial<Entity>) => Entity;
@@ -78,8 +78,10 @@ export const newApp = (partialApp: Partial<App>): App => {
     };
   }
 
-  if (!app.clear) {
-    app.clear = (child) => {
+  if (!app.delete) {
+    app.delete = (child) => {
+      child.beforeDelete?.();
+
       for (const system of systems) {
         const entities = systemsEntities.get(system);
         if (entities?.has(child)) {
@@ -230,7 +232,7 @@ export const newApp = (partialApp: Partial<App>): App => {
         // Existing entity
         if (patch.entityId in entities) {
           // That's deleted
-          if (patch.deleted) app.clear(entities[patch.entityId]);
+          if (patch.deleted) app.delete(entities[patch.entityId]);
           // Otherwise just update it
           else Object.assign(entities[patch.entityId], patch);
           // Non-existing entity that isn't being deleted

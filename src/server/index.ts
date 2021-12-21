@@ -1,5 +1,5 @@
 import { WriteLogEntry } from "../core/App.ts";
-import { Entity } from "../core/Entity.ts";
+import { Entity, Widget } from "../core/Entity.ts";
 import { setHero } from "../hero.ts";
 import { newSemcraft } from "../semcraft.ts";
 import { withSemcraft, wrapSemcraft } from "../semcraftContext.ts";
@@ -9,6 +9,8 @@ import { moveAlongServer, moveToServer } from "./systems/movement.ts";
 import { timers } from "./systems/timers.ts";
 import { tiles } from "./tiles.ts";
 import { Grid } from "../util/Grid.ts";
+import { collision } from "./systems/collision.ts";
+import { SIZE } from "../constants.ts";
 
 const semcraft = newSemcraft();
 
@@ -17,7 +19,7 @@ const AREA_OF_KNOWLEDGE = 20;
 type Client = {
   port: MessagePort;
   hero: Entity;
-  knownEntities: Set<Entity & { x: number; y: number }>;
+  knownEntities: Set<Widget>;
 };
 
 const clients = new Set<Client>();
@@ -51,13 +53,13 @@ setInterval(
   wrapSemcraft(semcraft, () => {
     semcraft.update((writeLog) => {
       if (writeLog.size) {
-        console.log(
-          "found",
-          writeLog.size,
-          "updates for",
-          clients.size,
-          "clients",
-        );
+        // console.log(
+        //   "found",
+        //   writeLog.size,
+        //   "updates for",
+        //   clients.size,
+        //   "clients",
+        // );
         for (const client of clients) {
           try {
             const writes: WriteLogEntry[] = [];
@@ -69,7 +71,7 @@ setInterval(
               AREA_OF_KNOWLEDGE,
               true,
             ));
-            const newEntities = new Set<Entity & { x: number; y: number }>();
+            const newEntities = new Set<Widget>();
             const newEntityIds = new Set<number>();
             for (const entity of nearEntities) {
               if (
@@ -106,17 +108,17 @@ setInterval(
             }
             client.knownEntities = nearEntities;
 
-            console.log(
-              "sending",
-              writes.length,
-              "updates to client",
-            );
+            // console.log(
+            //   "sending",
+            //   writes.length,
+            //   "updates to client",
+            // );
             client.port.postMessage(
               writes.map((w) => scrub(w, client.hero === w)),
             );
           } catch (err) {
             console.log(err);
-            semcraft.clear(client.hero);
+            semcraft.delete(client.hero);
             clients.delete(client);
           }
         }
@@ -126,7 +128,7 @@ setInterval(
   16,
 );
 
-let grid: Grid<Entity & { x: number; y: number }>;
+let grid: Grid<Widget>;
 
 // Initialize the world
 withSemcraft(semcraft, () => {
@@ -134,14 +136,20 @@ withSemcraft(semcraft, () => {
   semcraft.addSystem(moveAlongServer());
   semcraft.addSystem(newGrid());
   semcraft.addSystem(timers());
+  semcraft.addSystem(collision());
   grid = currentGrid();
 
   tiles();
 
-  semcraft.add({ x: 5, y: 0 });
-  semcraft.add({ x: 0, y: 5 });
-  semcraft.add({ x: -5, y: 0 });
-  semcraft.add({ x: 0, y: -5 });
+  const beforeDelete = () =>
+    semcraft.add({
+      x: (Math.random() - 0.5) * SIZE,
+      y: (Math.random() - 0.5) * SIZE,
+      life: 25,
+      beforeDelete,
+    });
+
+  for (let i = 0; i < 100; i++) beforeDelete();
 });
 
 globalThis.addEventListener(

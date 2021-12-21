@@ -1,16 +1,14 @@
 import { SIZE } from "../../constants.ts";
-import { Entity } from "../../core/Entity.ts";
+import { Widget } from "../../core/Entity.ts";
 import { System } from "../../core/System.ts";
 import { data } from "../../util/data.ts";
 import { Grid } from "../../util/Grid.ts";
 
-const { current: currentGrid, set } = data<
-  Grid<Entity & { x: number; y: number }>
->();
+const { current: currentGrid, set } = data<Grid<Widget>>();
 export { currentGrid };
 
 export const newGrid = () => {
-  const grid = new Grid<Entity & { x: number; y: number }>(
+  const grid = new Grid<Widget>(
     -SIZE / 2,
     SIZE / 2,
     SIZE / 8,

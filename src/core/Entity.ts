@@ -41,7 +41,7 @@ export type Entity = {
   /**
    * The entity that created this entity (e.g., firebolt, summon).
    */
-  source?: Entity;
+  owner?: Entity;
 
   /** Describes the mesh to be generated */
   art?: {
@@ -64,21 +64,33 @@ export type Entity = {
   /** A direction, in radians, an entity will be moved along. */
   moveAlong?: number;
 
-  /**
-   * Seconds remaining until callback is invoked. Note the callback has to
-   * handle cleaning out the timeout.
-   */
-  timeout?: number;
+  /** Like setTimeout, but via the Entity-Component-System. */
+  timeout?: {
+    /** Seconds remaining until callback is invoked. */
+    remaining: number;
+    /** Function that will be invoked when remaining hits zero. */
+    callback: () => void;
+  };
 
-  /**
-   * A function that will be invoked when timeout reaches zero. Note the
-   * callback has to handle cleaning out the timeout.
-   */
-  callback?: () => void;
+  /** Detect nearby entities and invoke a callback. */
+  collision?: {
+    /** Distance other entities will be found, origin to origin. */
+    radius: number;
+    /**
+     * Callback that will be invoked. Will be invoked with all nearby entities,
+     * but only if at least one is found.
+     */
+    callback: (entities: ReadonlySet<Widget>) => void;
+  };
 
   /** A flag to mark the entity as a piece of terrain. */
   isTerrain?: boolean;
+
+  /** A callback that is called before the entity is deleted. */
+  beforeDelete?: () => void;
 };
+
+export type Widget = Entity & { x: number; y: number };
 
 const trackProp = <Prop extends keyof Entity>(
   entity: Entity,
@@ -112,7 +124,6 @@ export const newEntity = (partialEntity: Partial<Entity>) => {
   trackProp(entity, "moveTo");
   trackProp(entity, "moveAlong");
   trackProp(entity, "timeout");
-  trackProp(entity, "callback");
   trackProp(entity, "art");
 
   return entity;
