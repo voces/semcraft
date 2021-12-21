@@ -19,11 +19,24 @@ type Client = {
 
 const clients = new Set<Client>();
 
-const publicAttributes = ["entityId", "x", "y", "art", "isTerrain", "deleted"];
+const publicAttributes = [
+  "entityId",
+  "x",
+  "y",
+  "art",
+  "isTerrain",
+  "deleted",
+];
+const ownerAttributes = [
+  "life",
+  "mana",
+];
 
-const scrub = (write: WriteLogEntry | Entity) =>
+const scrub = (write: WriteLogEntry | Entity, owned: boolean) =>
   Object.fromEntries(
-    Object.entries(write).filter(([k]) => publicAttributes.includes(k)),
+    Object.entries(write).filter(([k]) =>
+      publicAttributes.includes(k) || (owned && ownerAttributes.includes(k))
+    ),
   );
 
 // Start update loop
@@ -86,7 +99,7 @@ setInterval(
               "updates to client",
             );
             client.port.postMessage(
-              writes.map(scrub),
+              writes.map((w) => scrub(w, client.hero === w)),
             );
           } catch (err) {
             console.log(err);
@@ -115,7 +128,7 @@ globalThis.addEventListener(
     const hero = semcraft.add({
       x: (Math.random() - 0.5) * 10,
       y: (Math.random() - 0.5) * 10,
-      speed: 10,
+      speed: 5,
       art: { geometry: { type: "sphere" as const } },
     });
 
@@ -125,7 +138,7 @@ globalThis.addEventListener(
       knownEntities: new Set(),
     };
 
-    client.port.postMessage(scrub(hero));
+    client.port.postMessage(scrub(hero, true));
 
     clients.add(client);
 

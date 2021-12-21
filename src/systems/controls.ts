@@ -3,7 +3,7 @@
  */
 
 import { actions } from "../actions/index.ts";
-import { currentSemcraft } from "../semcraftContext.ts";
+import { currentSemcraft, wrapSemcraft } from "../semcraftContext.ts";
 import { data } from "../util/data.ts";
 import { currentKeyboard } from "./keyboard.ts";
 import { currentMouse } from "./mouse.ts";
@@ -45,4 +45,8 @@ export const controls = () => {
     "mouseleave",
     () => console.log("out"),
   );
+
+  globalThis.onbeforeunload = wrapSemcraft(semcraft, (e) => {
+    current()({ action: "exit" });
+  });
 };

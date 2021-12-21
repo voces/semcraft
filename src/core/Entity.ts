@@ -10,6 +10,36 @@ export type Entity = {
   /** y position of the entity. */
   y?: number;
 
+  /**
+   * The life of the entity.
+   */
+  life?: number;
+
+  /**
+   * The mana of the entity.
+   */
+  mana?: number;
+
+  /**
+   * The affinity the entity has with each rune.
+   */
+  affinities?: number[];
+
+  /**
+   * The number of times the entity has used each rune.
+   */
+  counts?: number[];
+
+  /**
+   * The number of times the entity has transitioned between each rune.
+   */
+  transitions?: number[][];
+
+  /**
+   * The entity that created this entity (e.g., firebolt, summon).
+   */
+  source?: Entity;
+
   /** Describes the mesh to be generated */
   art?: {
     geometry?: { type: "plane" } | { type: "sphere"; radius?: number };
@@ -72,6 +102,7 @@ export const newEntity = (partialEntity: Partial<Entity>) => {
 
   trackProp(entity, "x");
   trackProp(entity, "y");
+  trackProp(entity, "life");
   trackProp(entity, "mesh");
   trackProp(entity, "isTerrain");
   trackProp(entity, "speed");
