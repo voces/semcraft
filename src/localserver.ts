@@ -60,6 +60,7 @@ setInterval(
               client.hero.x!,
               client.hero.y!,
               AREA_OF_KNOWLEDGE,
+              true,
             ));
             const newEntities = new Set<Entity & { x: number; y: number }>();
             for (const entity of nearEntities) {
@@ -77,6 +78,7 @@ setInterval(
                 client.hero.x!,
                 client.hero.y!,
                 AREA_OF_KNOWLEDGE,
+                true,
               ),
             );
 
