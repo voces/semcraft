@@ -19,21 +19,11 @@ export type System<Props extends keyof Entity> = {
    */
   onChange?: (entity: Entity & Required<Pick<Entity, Props>>) => void;
 
-  /** Invoked each logical clock update. */
+  /** Invoked each update. */
   update?: (delta: number, time: number) => void;
 
-  /** Invoked each logical clock update for each child of the system. */
+  /** Invoked each update for each child of the system. */
   updateChild?: (
-    child: Entity & Required<Pick<Entity, Props>>,
-    delta: number,
-    time: number,
-  ) => void;
-
-  /** Invoked each render. */
-  render?: (delta: number, time: number) => void;
-
-  /** Invoked each render for each child of the system. */
-  renderChild?: (
     child: Entity & Required<Pick<Entity, Props>>,
     delta: number,
     time: number,

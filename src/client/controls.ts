@@ -2,15 +2,15 @@
  * Actions: move, switchLeft(), switchRight()
  */
 
-import { actions } from "../actions/index.ts";
+import { actions } from "../client/actions/index.ts";
 import { currentSemcraft, wrapSemcraft } from "../semcraftContext.ts";
 import { data } from "../util/data.ts";
 import { currentKeyboard } from "./keyboard.ts";
-import { currentMouse } from "./mouse.ts";
+import { currentMouse } from "./systems/mouse.ts";
 
 const { current, set: setTransmit } = data<
   (
-    data: ReturnType<typeof actions[keyof typeof actions]["clientHandler"]>,
+    data: ReturnType<typeof actions[keyof typeof actions]>,
   ) => void
 >();
 export { setTransmit };
@@ -33,7 +33,7 @@ export const controls = () => {
       Object.entries(mouse.buttons),
     ).filter(([, v]) => v).map(([k]) => k).join(" + ");
 
-    const event = controls[hotkey]?.clientHandler();
+    const event = controls[hotkey]?.();
     if (event) current()(event);
   };
 
@@ -46,7 +46,7 @@ export const controls = () => {
     () => console.log("out"),
   );
 
-  globalThis.onbeforeunload = wrapSemcraft(semcraft, (e) => {
+  globalThis.onbeforeunload = wrapSemcraft(semcraft, () => {
     current()({ action: "exit" });
   });
 };

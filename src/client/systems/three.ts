@@ -11,11 +11,11 @@ import {
   SphereGeometry,
   WebGLRenderer,
 } from "three";
-import { Entity } from "../core/Entity.ts";
-import { System } from "../core/System.ts";
-import { currentHero } from "../hero.ts";
-import { data } from "../util/data.ts";
-import { materialsBitmap } from "./tiles.ts";
+import { Entity } from "../../core/Entity.ts";
+import { System } from "../../core/System.ts";
+import { currentHero } from "../../hero.ts";
+import { data } from "../../util/data.ts";
+import { materialsBitmap } from "../tiles.ts";
 
 const { current: currentThree, set } = data<{
   camera: PerspectiveCamera;
@@ -104,7 +104,7 @@ export const three = (canvas: HTMLCanvasElement) => {
 
   return {
     props: ["x", "y"],
-    render: () => {
+    update: () => {
       renderer.render(scene, camera);
       try {
         const hero = currentHero();
@@ -142,11 +142,3 @@ export const three = (canvas: HTMLCanvasElement) => {
     },
   } as System<"x" | "y">;
 };
-
-export const threeServer = () => ({
-  props: ["x", "y"],
-  onAdd: (entity) => {
-    // deno-lint-ignore no-explicit-any
-    entity.mesh = true as any;
-  },
-} as System<"x" | "y">);

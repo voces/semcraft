@@ -1,4 +1,4 @@
-import { SIZE } from "../systems/tiles.ts";
+import { SIZE } from "../constants.ts";
 import { GridMap } from "../util/GridMap.ts";
 import { Entity, newEntity } from "./Entity.ts";
 import { System } from "./System.ts";
@@ -11,11 +11,8 @@ export type WriteLogEntry = Partial<Entity> & {
 };
 
 export type App = {
-  /** Invoked each logical clock update. */
+  /** Invoked each update. */
   update: (fn: (grid: GridMap<Entity, WriteLogEntry>) => void) => void;
-
-  /** Invoked each render. */
-  render: () => void;
 
   onEntityPropChange: <Property extends keyof Entity>(
     entity: Entity,
@@ -30,7 +27,7 @@ export type App = {
   add: (partial: Partial<Entity>) => Entity;
 
   /** Add an system to the App. */
-  addSystem: <K extends keyof Entity>(partial: System<K>) => void;
+  addSystem: <K extends keyof Entity>(partial: System<K>) => System<K>;
 
   /** Apply updates from writelogs (return of update). */
   patch: (writes: WriteLogEntry[]) => void;
@@ -78,27 +75,6 @@ export const newApp = (partialApp: Partial<App>): App => {
       fn(writeLog);
 
       writeLog.clear();
-    };
-  }
-
-  if (!app.render) {
-    let lastRender = Date.now() / 1000;
-    app.render = () => {
-      const next = Date.now() / 1000;
-      const delta = next - lastRender;
-      lastRender = next;
-
-      for (const system of systems) {
-        system.render?.(delta, next);
-
-        const entities = systemsEntities.get(system);
-        if (system.renderChild && entities) {
-          for (const child of entities) {
-            // deno-lint-ignore no-explicit-any
-            system.renderChild(child as any, delta, next);
-          }
-        }
-      }
     };
   }
 
@@ -218,7 +194,7 @@ export const newApp = (partialApp: Partial<App>): App => {
   }
 
   if (!app.addSystem) {
-    app.addSystem = (partialSystem) => {
+    app.addSystem = <K extends keyof Entity>(partialSystem: System<K>) => {
       // Allow direct adding of plain objects
       const system = partialSystem as System<keyof Entity>;
       const systemEntities = new Set<Entity>();
@@ -244,7 +220,7 @@ export const newApp = (partialApp: Partial<App>): App => {
 
       systems.add(system);
 
-      return system;
+      return system as System<K>;
     };
   }
 

@@ -1,7 +1,7 @@
 import { Raycaster } from "three";
-import { Entity } from "../core/Entity.ts";
-import { currentSemcraft, wrapSemcraft } from "../semcraftContext.ts";
-import { data } from "../util/data.ts";
+import { Entity } from "../../core/Entity.ts";
+import { currentSemcraft, wrapSemcraft } from "../../semcraftContext.ts";
+import { data } from "../../util/data.ts";
 import { currentThree } from "./three.ts";
 
 export type Mouse = {
@@ -18,8 +18,7 @@ export type Mouse = {
 const { current: currentMouse, set } = data<Mouse>();
 export { currentMouse };
 
-const raycaster = new Raycaster();
-const raycast = (mouse: Mouse) => {
+const raycast = (mouse: Mouse, raycaster: Raycaster) => {
   const { camera, scene } = currentThree();
 
   raycaster.setFromCamera(mouse.screen, camera);
@@ -53,6 +52,7 @@ const raycast = (mouse: Mouse) => {
 
 export const mouse = () => {
   const semcraft = currentSemcraft();
+  const raycaster = new Raycaster();
 
   const mouse = {
     ground: { x: 0, y: 0 },
@@ -78,7 +78,7 @@ export const mouse = () => {
 
       mouse.screen.x = (e.x / window.innerWidth) * 2 - 1;
       mouse.screen.y = -(e.y / window.innerHeight) * 2 + 1;
-      raycast(mouse);
+      raycast(mouse, raycaster);
       semcraft.dispatchEvent("mousedown", mouse);
     }),
   );
@@ -92,16 +92,16 @@ export const mouse = () => {
 
       mouse.screen.x = (e.x / window.innerWidth) * 2 - 1;
       mouse.screen.y = -(e.y / window.innerHeight) * 2 + 1;
-      raycast(mouse);
+      raycast(mouse, raycaster);
       semcraft.dispatchEvent("mouseup", mouse);
     }),
   );
 
   return {
-    render: () => {
+    update: () => {
       // TODO: replace mouse.buttons.Left with the action hotkey move uses
       if (mouseMoved || mouse.buttons.Left) {
-        raycast(mouse);
+        raycast(mouse, raycaster);
         semcraft.dispatchEvent("mousemove", mouse);
         mouseMoved = false;
       }

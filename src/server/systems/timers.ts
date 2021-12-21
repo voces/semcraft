@@ -1,5 +1,5 @@
-import { System } from "../core/System.ts";
-import { currentSemcraft } from "../semcraftContext.ts";
+import { System } from "../../core/System.ts";
+import { currentSemcraft } from "../../semcraftContext.ts";
 
 export const timers = () => {
   return {

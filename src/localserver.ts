@@ -1,10 +1,13 @@
-import { actions } from "./actions/index.ts";
 import { WriteLogEntry } from "./core/App.ts";
 import { Entity } from "./core/Entity.ts";
 import { setHero } from "./hero.ts";
 import { newSemcraft } from "./semcraft.ts";
 import { withSemcraft, wrapSemcraft } from "./semcraftContext.ts";
-import { currentGrid } from "./systems/grid.ts";
+import { actions } from "./server/actions/index.ts";
+import { currentGrid, newGrid } from "./server/systems/grid.ts";
+import { moveAlongServer, moveToServer } from "./server/systems/movement.ts";
+import { timers } from "./server/systems/timers.ts";
+import { tiles } from "./server/tiles.ts";
 import { Grid } from "./util/Grid.ts";
 
 const semcraft = newSemcraft();
@@ -26,6 +29,7 @@ const publicAttributes = [
   "art",
   "isTerrain",
   "deleted",
+  "moveTo",
 ];
 const ownerAttributes = [
   "life",
@@ -63,24 +67,28 @@ setInterval(
               true,
             ));
             const newEntities = new Set<Entity & { x: number; y: number }>();
+            const newEntityIds = new Set<number>();
             for (const entity of nearEntities) {
               if (
                 !client.knownEntities.has(entity)
               ) {
                 newEntities.add(entity);
+                newEntityIds.add(entity.entityId);
                 writes.push(entity);
               }
             }
 
             // Send updated entities in patches
-            writes.push(
-              ...writeLog.queryPoint(
+            for (
+              const write of writeLog.queryPoint(
                 client.hero.x!,
                 client.hero.y!,
                 AREA_OF_KNOWLEDGE,
                 true,
-              ),
-            );
+              )
+            ) {
+              if (!newEntityIds.has(write.entityId)) writes.push(write);
+            }
 
             // Delete entities that are no longer in view
             for (const entity of client.knownEntities) {
@@ -119,7 +127,18 @@ let grid: Grid<Entity & { x: number; y: number }>;
 
 // Initialize the world
 withSemcraft(semcraft, () => {
+  semcraft.addSystem(moveToServer());
+  semcraft.addSystem(moveAlongServer());
+  semcraft.addSystem(newGrid());
+  semcraft.addSystem(timers());
   grid = currentGrid();
+
+  tiles();
+
+  semcraft.add({ x: 5, y: 0 });
+  semcraft.add({ x: 0, y: 5 });
+  semcraft.add({ x: -5, y: 0 });
+  semcraft.add({ x: 0, y: -5 });
 });
 
 globalThis.addEventListener(
@@ -152,7 +171,7 @@ globalThis.addEventListener(
       wrapSemcraft(semcraft, (ev) => {
         setHero(hero);
         console.log(ev.data);
-        actions[ev.data.action as keyof typeof actions]?.serverHandler(ev.data);
+        actions[ev.data.action as keyof typeof actions]?.(ev.data);
       }),
     );
   }),
