@@ -1,6 +1,0 @@
-import { h, render } from "preact";
-import { App } from "./App.tsx";
-
-render(<App />, document.body);
-
-globalThis.addEventListener("contextmenu", (e) => e.preventDefault());
