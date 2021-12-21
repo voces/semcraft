@@ -1,2 +1,3 @@
-public/assets
-public/js
+docs/assets
+docs/js
+.DS_tore

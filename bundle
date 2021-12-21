@@ -3,5 +3,5 @@ esbuild "$@" \
     src/server/index.ts \
     --bundle --splitting --format=esm --tsconfig=deno.jsonc \
     --external:three --external:preact/hooks --external:preact \
-    --outdir=public/js
+    --outdir=docs/js
     
