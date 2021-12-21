@@ -1,62 +1,30 @@
 import {
   BoxGeometry,
-  Camera,
+  BufferGeometry,
   HemisphereLight,
+  Material,
   Mesh,
   MeshPhongMaterial,
   PerspectiveCamera,
-  Raycaster,
+  PlaneGeometry,
   Scene,
+  SphereGeometry,
   WebGLRenderer,
 } from "three";
-import { Entity } from "../proxyecs.ts";
+import { Entity } from "../core/Entity.ts";
+import { System } from "../core/System.ts";
+import { currentHero } from "../hero.ts";
+import { data } from "../util/data.ts";
+import { materialsBitmap } from "./tiles.ts";
 
-const raycast = (
-  raycaster: Raycaster,
-  screenCursor: { x: number; y: number },
-  groundCursor: { x: number; y: number },
-  camera: Camera,
-  scene: Scene,
-) => {
-  raycaster.setFromCamera(screenCursor, camera);
+const { current: currentThree, set } = data<{
+  camera: PerspectiveCamera;
+  scene: Scene;
+}>();
 
-  const intersections = raycaster.intersectObjects(
-    scene.children,
-    true,
-  );
+export { currentThree };
 
-  outer:
-  for (let i = intersections.length - 1; i >= 0; i--) {
-    if ("isTerrain" in intersections[i].object) {
-      groundCursor.x = intersections[i].point.x;
-      groundCursor.y = intersections[i].point.y;
-      break outer;
-    }
-  }
-
-  let foundEntity = false;
-
-  for (let i = 0; i < this.intersections.length; i++) {
-    const object: EntityObject = this.intersections[i].object;
-    const entity = object?.entity;
-    if (entity && isSelectableEntity(entity) && entity.selectable) {
-      foundEntity = true;
-      if (this.entity !== entity) {
-        if (this.entity) Hover.clear(this.entity);
-        this.entity = entity;
-        new Hover(entity);
-      }
-      break;
-    }
-  }
-
-  if (!foundEntity && this.entity) {
-    Hover.clear(this.entity);
-    this.entity = undefined;
-  }
-};
-
-export const three = (canvas: HTMLCanvasElement) => {
+const initializeScene = (canvas: HTMLCanvasElement) => {
   const scene = new Scene();
   const camera = new PerspectiveCamera(
     75,
@@ -79,38 +47,106 @@ export const three = (canvas: HTMLCanvasElement) => {
     camera.updateProjectionMatrix();
   });
 
-  const groundCursor = { x: 0, y: 0 };
-  const screenCursor = { x: 0, y: 0 };
-  // const
-  let mouseMoved = false;
-  globalThis.addEventListener("mousemove", (e) => {
-    mouseMoved = true;
-  });
-  // currentSemcraft().add(groundCursor);
+  return [scene, camera, renderer] as const;
+};
 
-  return ({
-    props: ["x", "y"] as const,
+const defaultBox = new BoxGeometry();
+const defaultShpere = new SphereGeometry(1 / 2);
+const defaultPlane = new PlaneGeometry();
+
+// Do this via memoization instead...
+const initializeGeometry = (
+  def: Required<Entity>["art"]["geometry"],
+): BufferGeometry => {
+  if (!def) return defaultBox;
+
+  switch (def.type) {
+    case "plane": {
+      return defaultPlane;
+    }
+    case "sphere": {
+      if (def.radius) return new SphereGeometry(def.radius);
+      return defaultShpere;
+    }
+  }
+};
+
+const defaultMaterial = new MeshPhongMaterial({ color: 0xffffff });
+
+const initializeMaterial = (
+  def: Required<Entity>["art"]["material"],
+): Material => {
+  if (!def) return defaultMaterial;
+
+  switch (def.type) {
+    case "tile":
+      return materialsBitmap[def.index];
+    case "phong":
+      return new MeshPhongMaterial({ color: def.color });
+  }
+};
+
+const initializeMesh = (entity: Entity) => {
+  const geometry = initializeGeometry(entity.art?.geometry);
+  const material = initializeMaterial(entity.art?.material);
+
+  const mesh = new Mesh(geometry, material);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+
+  return mesh;
+};
+
+export const three = (canvas: HTMLCanvasElement) => {
+  const [scene, camera, renderer] = initializeScene(canvas);
+
+  set({ scene, camera });
+
+  return {
+    props: ["x", "y"],
     render: () => {
       renderer.render(scene, camera);
-      if (!mouseMoved) return;
+      try {
+        const hero = currentHero();
+        if (hero.mesh) {
+          camera.position.x = hero.mesh.position.x;
+          camera.position.y = hero.mesh.position.y;
+        }
+      } catch { /* do nothing */ }
     },
-    test: (entity: Entity) =>
-      typeof entity.x === "number" && typeof entity.y === "number" &&
-      entity.mesh !== null,
-    onAdd: (entity: Entity) => {
-      const mesh = entity.mesh ?? (entity.mesh = new Mesh(
-        new BoxGeometry(1),
-        new MeshPhongMaterial({ color: 0xffffff }),
-      ));
-      mesh.position.x = entity.x!;
-      mesh.position.y = entity.y!;
-      scene.add(mesh);
+    onAdd: (entity) => {
+      if (!entity.mesh) entity.mesh = initializeMesh(entity);
+      Object.defineProperty(entity.mesh, "userData", { value: entity });
+
+      entity.mesh!.position.x = entity.x!;
+      entity.mesh!.position.y = entity.y!;
+
+      scene.add(entity.mesh!);
     },
-    onChange: (entity: Entity) => {
+    onChange: (entity) => {
       const mesh = entity.mesh;
       if (!mesh) return;
-      mesh.position.x = entity.x!;
-      mesh.position.y = entity.y!;
+      mesh.position.x = entity.x;
+      mesh.position.y = entity.y;
+
+      try {
+        const hero = currentHero();
+        if (hero === entity) {
+          camera.position.x = entity.x;
+          camera.position.y = entity.y;
+        }
+      } catch { /*do nothing*/ }
     },
-  });
+    onRemove: (entity) => {
+      scene.remove(entity.mesh!);
+    },
+  } as System<"x" | "y">;
 };
+
+export const threeServer = () => ({
+  props: ["x", "y"],
+  onAdd: (entity) => {
+    // deno-lint-ignore no-explicit-any
+    entity.mesh = true as any;
+  },
+} as System<"x" | "y">);

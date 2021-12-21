@@ -1,7 +1,15 @@
 {
   "compilerOptions": {
-    "lib": ["deno.ns"],
+    "lib": ["deno.ns", "dom"],
     "jsxFactory": "h",
     "jsxFragmentFactory": "Fragment"
+  },
+  "lint": {
+    "files": {
+      "exclude": ["public/js"]
+    }
+  },
+  "fmt": {
+    "files": { "exclude": ["public/js"] }
   }
 }

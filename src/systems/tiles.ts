@@ -1,13 +1,5 @@
-import {
-  Material,
-  Mesh,
-  MeshPhongMaterial,
-  NearestFilter,
-  PlaneGeometry,
-  Texture,
-} from "three";
-import { Entity } from "../proxyecs.ts";
-import { currentSemcraft } from "../Semcraft.ts";
+import { Material, MeshPhongMaterial, NearestFilter, Texture } from "three";
+import { currentSemcraft } from "../semcraftContext.ts";
 
 const QUALITY = 256;
 const FILL = 0.98;
@@ -48,22 +40,26 @@ const hourglass = (
 const canvasTexture = (
   fn: (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => void,
 ): Texture => {
-  const canvas = document.createElement("canvas");
-  canvas.width = QUALITY;
-  canvas.height = QUALITY;
-
-  const context = canvas.getContext("2d")!;
-  context.fillStyle = "#133a2b";
-  context.fillRect(0, 0, QUALITY, QUALITY);
-  context.fillStyle = "#0b4f35";
-  fn(context, canvas);
-
-  // Crap hashing; it breaks down if QUALITY is changed
-  const bits = context.getImageData(0, 0, QUALITY, QUALITY).data;
   let hash = 0;
-  for (let i = 0; i < bits.length; i += 809) {
-    hash = ((hash + 2217911) * bits[i]) % 14689313;
-  }
+  let canvas;
+
+  try {
+    canvas = document.createElement("canvas");
+    canvas.width = QUALITY;
+    canvas.height = QUALITY;
+
+    const context = canvas.getContext("2d")!;
+    context.fillStyle = "#133a2b";
+    context.fillRect(0, 0, QUALITY, QUALITY);
+    context.fillStyle = "#0b4f35";
+    fn(context, canvas);
+
+    // Crap hashing; it breaks down if QUALITY is changed
+    const bits = context.getImageData(0, 0, QUALITY, QUALITY).data;
+    for (let i = 0; i < bits.length; i += 809) {
+      hash = ((hash + 2217911) * bits[i]) % 14689313;
+    }
+  } catch { /* ignore errors */ }
 
   if (textures[hash]) return textures[hash];
 
@@ -86,7 +82,7 @@ const BOTLEFT = 64;
 const BOT = 128;
 const BOTRIGHT = 256;
 
-const materialsBitmap = Array(2 ** 9)
+export const materialsBitmap = Array(2 ** 9)
   .fill(0)
   .map((_, i) =>
     canvasTexture((ctx) => {
@@ -130,48 +126,42 @@ const materialsBitmap = Array(2 ** 9)
     return newMat;
   });
 
-const zeroes = (count: number): number[] => Array(count).fill(0);
+export const SIZE = 99;
 
-const WIDTH = 11;
-const HEIGHT = 11;
-const vert = (HEIGHT - 5) / 2;
-const horz = (WIDTH - 5) / 2;
-const grid = [
-  ...Array(vert).fill(0).map(() => zeroes(WIDTH)),
-  [...zeroes(horz), 0, 1, 1, 1, 0, ...zeroes(horz)],
-  [...zeroes(horz), 1, 0, 1, 0, 1, ...zeroes(horz)],
-  [...zeroes(horz), 0, 1, 1, 1, 0, ...zeroes(horz)],
-  [...zeroes(horz), 0, 1, 0, 1, 0, ...zeroes(horz)],
-  [...zeroes(horz), 1, 1, 1, 1, 1, ...zeroes(horz)],
-  ...Array(vert).fill(0).map(() => zeroes(WIDTH)),
-];
-
-const plane = new PlaneGeometry();
+const grid = Array.from(
+  Array(SIZE),
+  () =>
+    Array.from(Array(SIZE), () => Math.random() * Math.random() < 0.5 ? 0 : 1),
+);
 
 export const tiles = () => {
   const semcraft = currentSemcraft();
 
-  for (let y = 0; y < HEIGHT; y++) {
-    for (let x = 0; x < WIDTH; x++) {
-      const matIdx = ((grid[y - 1]?.[x - 1] ?? 0) * TOPLEFT) +
-        (grid[y - 1]?.[x] ?? 0) * TOP +
-        (grid[y - 1]?.[x + 1] ?? 0) * TOPRIGHT +
-        (grid[y][x - 1] ?? 0) * LEFT +
-        (grid[y][x] ?? 0) * CENTER +
-        (grid[y][x + 1] ?? 0) * RIGHT +
-        (grid[y + 1]?.[x - 1] ?? 0) * BOTLEFT +
-        (grid[y + 1]?.[x] ?? 0) * BOT +
-        (grid[y + 1]?.[x + 1] ?? 0) * BOTRIGHT;
+  if (!("document" in globalThis)) {
+    for (let y = 0; y < SIZE; y++) {
+      for (let x = 0; x < SIZE; x++) {
+        const matIdx = ((grid[y - 1]?.[x - 1] ?? 0) * TOPLEFT) +
+          (grid[y - 1]?.[x] ?? 0) * TOP +
+          (grid[y - 1]?.[x + 1] ?? 0) * TOPRIGHT +
+          (grid[y][x - 1] ?? 0) * LEFT +
+          (grid[y][x] ?? 0) * CENTER +
+          (grid[y][x + 1] ?? 0) * RIGHT +
+          (grid[y + 1]?.[x - 1] ?? 0) * BOTLEFT +
+          (grid[y + 1]?.[x] ?? 0) * BOT +
+          (grid[y + 1]?.[x + 1] ?? 0) * BOTRIGHT;
 
-      const mesh = new Mesh(plane, materialsBitmap[matIdx]);
-      const entity = {
-        x: (x - WIDTH / 2) + 0.5,
-        y: (y - HEIGHT / 2) + 0.5,
-        mesh,
-      };
-      (mesh as unknown as { entity: Entity }).entity = entity;
+        const entity = {
+          x: (x - SIZE / 2) + 0.5,
+          y: (y - SIZE / 2) + 0.5,
+          isTerrain: true,
+          art: {
+            geometry: { type: "plane" as const },
+            material: { type: "tile" as const, index: matIdx },
+          },
+        };
 
-      semcraft.add(entity);
+        semcraft.add(entity);
+      }
     }
   }
 };
