@@ -28,7 +28,7 @@ export const App = () => {
     const semcraft2 = newSemcraft(canvasRef.current);
     setSemcraft(semcraft2);
 
-    const server = new SharedWorker("./js/server.js");
+    const server = new SharedWorker("./js/localserver.js");
     server.port.start();
     server.port.addEventListener(
       "message",

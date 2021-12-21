@@ -9,7 +9,7 @@ import { Grid } from "./util/Grid.ts";
 
 const semcraft = newSemcraft();
 
-const AREA_OF_KNOWLEDGE = 10;
+const AREA_OF_KNOWLEDGE = 20;
 
 type Client = {
   port: MessagePort;
