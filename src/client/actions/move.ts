@@ -1,6 +1,11 @@
 import { currentMouse } from "../systems/mouse.ts";
+import { newThrottle } from "./util.ts";
 
-export const move = () => {
+const onCooldown = newThrottle(250);
+
+export const move = async () => {
+  if (await onCooldown()) return;
+
   const mouse = currentMouse();
   return { action: "move", x: mouse.ground.x, y: mouse.ground.y };
 };

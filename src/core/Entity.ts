@@ -4,6 +4,9 @@ import { currentApp } from "./appContext.ts";
 export type Entity = {
   entityId: number;
 
+  /** User visible name of the entity. */
+  name?: string;
+
   /** x position of the entity. */
   x?: number;
 

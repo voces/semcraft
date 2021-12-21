@@ -8,24 +8,19 @@
  * - Note unlike affinities, this is not zero-sum.
  */
 
-import { Entity } from "../../core/Entity.ts";
 import { currentHero } from "../../hero.ts";
 import { currentSemcraft } from "../../semcraftContext.ts";
-import { Action } from "./util.ts";
+import { Action, newCooldown } from "./util.ts";
 
-const cooldowns = new WeakMap<Entity, number>();
-const COOLDOWN = 750;
+const onCooldown = newCooldown(750);
 
 export const firebolt: Action<"firebolt"> = ({ x, y }) => {
   const hero = currentHero();
-
-  const now = Date.now();
-  const last = cooldowns.get(hero) ?? -Infinity;
-  if (now - last < COOLDOWN) return;
-  cooldowns.set(hero, now);
+  if (onCooldown(hero)) return;
 
   const semcraft = currentSemcraft();
   const firebolt = semcraft.add({
+    name: "firebolt",
     x: hero.x,
     y: hero.y,
     moveAlong: Math.atan2(y - hero.y!, x - hero.x!),

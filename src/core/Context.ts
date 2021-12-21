@@ -23,10 +23,10 @@ export class Context<T extends object | undefined> {
     return context;
   }
 
-  with<A, B extends T>(context: B, fn: (context: B) => A): A {
+  async with<A, B extends T>(context: B, fn: (context: B) => A): Promise<A> {
     const old = this._current;
     this._current = context;
-    const ret = fn(context);
+    const ret = await fn(context);
     this._current = old;
     return ret;
   }
@@ -34,7 +34,7 @@ export class Context<T extends object | undefined> {
   wrap<Passed extends T, Args extends unknown[], Return extends unknown>(
     context: Passed,
     fn: (...args: Args) => Return,
-  ): (...args: Args) => Return {
+  ): (...args: Args) => Promise<Return> {
     if (!context) throw new Error("Expected context");
 
     let innerMemory: InnerMap;
@@ -51,9 +51,9 @@ export class Context<T extends object | undefined> {
     return wrapped;
   }
 
-  wrapCurrent<Passed extends T, Args extends unknown[], Return extends unknown>(
+  wrapCurrent<Args extends unknown[], Return extends unknown>(
     fn: (...args: Args) => Return,
-  ): (...args: Args) => Return {
+  ): (...args: Args) => Promise<Return> {
     return this.wrap(this.current, fn);
   }
 }

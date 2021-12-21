@@ -3,7 +3,7 @@
  */
 
 import { actions } from "../client/actions/index.ts";
-import { currentSemcraft, wrapSemcraft } from "../semcraftContext.ts";
+import { currentSemcraft, withSemcraft } from "../semcraftContext.ts";
 import { data } from "../util/data.ts";
 import { currentKeyboard } from "./keyboard.ts";
 import { currentMouse } from "./systems/mouse.ts";
@@ -28,12 +28,12 @@ export const controls = () => {
   const mouse = currentMouse();
   const keyboard = currentKeyboard();
 
-  const process = () => {
+  const process = async () => {
     const hotkey = Object.entries(keyboard).concat(
       Object.entries(mouse.buttons),
     ).filter(([, v]) => v).map(([k]) => k).join(" + ");
 
-    const event = controls[hotkey]?.();
+    const event = await controls[hotkey]?.();
     if (event) current()(event);
   };
 
@@ -46,7 +46,7 @@ export const controls = () => {
     () => console.log("out"),
   );
 
-  globalThis.onbeforeunload = wrapSemcraft(semcraft, () => {
-    current()({ action: "exit" });
-  });
+  globalThis.onbeforeunload = () => {
+    withSemcraft(semcraft, () => current()({ action: "exit" }));
+  };
 };

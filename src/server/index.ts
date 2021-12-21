@@ -23,13 +23,16 @@ type Client = {
 const clients = new Set<Client>();
 
 const publicAttributes = [
+  "art",
+  "deleted",
   "entityId",
+  "isTerrain",
+  "moveAlong",
+  "moveTo",
+  "name",
+  "speed",
   "x",
   "y",
-  "art",
-  "isTerrain",
-  "deleted",
-  "moveTo",
 ];
 const ownerAttributes = [
   "life",

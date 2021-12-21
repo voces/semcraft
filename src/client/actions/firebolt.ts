@@ -1,12 +1,10 @@
 import { currentMouse } from "../systems/mouse.ts";
+import { newCooldown } from "./util.ts";
 
-let cooldown = -Infinity;
-const COOLDOWN = 750;
+const onCooldown = newCooldown(750);
 
 export const firebolt = () => {
-  const now = Date.now();
-  if (now - cooldown < COOLDOWN) return;
-  cooldown = now;
+  if (onCooldown()) return;
 
   const { ground: { x, y } } = currentMouse();
   return { action: "firebolt", x, y };
