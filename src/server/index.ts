@@ -1,6 +1,6 @@
 import { WriteLogEntry } from "../core/App.ts";
 import { Entity, Widget } from "../core/Entity.ts";
-import { affinityMap, Hero, initializeAffinities, setHero } from "../hero.ts";
+import { newHero, setHero } from "../hero.ts";
 import { newSemcraft } from "../semcraft.ts";
 import { withSemcraft, wrapSemcraft } from "../semcraftContext.ts";
 import { actions } from "./actions/index.ts";
@@ -11,6 +11,7 @@ import { tiles } from "./tiles.ts";
 import { Grid } from "../util/Grid.ts";
 import { collision } from "./systems/collision.ts";
 import { SIZE } from "../constants.ts";
+import { newManaRegenSystem } from "./systems/regen.ts";
 
 const semcraft = newSemcraft();
 
@@ -114,7 +115,7 @@ setInterval(
             //   "updates to client",
             // );
             client.port.postMessage(
-              writes.map((w) => scrub(w, client.hero === w)),
+              writes.map((w) => scrub(w, client.hero.entityId === w.entityId)),
             );
           } catch (err) {
             console.log(err);
@@ -137,6 +138,7 @@ withSemcraft(semcraft, () => {
   semcraft.addSystem(newGrid());
   semcraft.addSystem(timers());
   semcraft.addSystem(collision());
+  semcraft.addSystem(newManaRegenSystem());
   grid = currentGrid();
 
   tiles();
@@ -157,15 +159,7 @@ globalThis.addEventListener(
   wrapSemcraft(semcraft, (e) => {
     const event = e as MessageEvent;
 
-    const hero = semcraft.add({
-      x: (Math.random() - 0.5) * 10,
-      y: (Math.random() - 0.5) * 10,
-      speed: 5,
-      art: { geometry: { type: "cylinder" as const } },
-      affinities: initializeAffinities(),
-      counts: affinityMap(() => 0),
-      transitions: affinityMap(() => affinityMap(() => 0)),
-    }) as Hero;
+    const hero = newHero();
 
     const client: Client = {
       port: event.ports[0],

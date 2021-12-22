@@ -1,4 +1,5 @@
 import { Affinity, AffinityTuple, Widget } from "./core/Entity.ts";
+import { currentSemcraft } from "./semcraftContext.ts";
 import { data } from "./util/data.ts";
 
 export type Hero = Widget & {
@@ -58,3 +59,16 @@ export const spellsheet = (
 
   return { parts, manaWeights, calcSpellAffinity };
 };
+
+export const newHero = () =>
+  currentSemcraft().add({
+    x: (Math.random() - 0.5) * 10,
+    y: (Math.random() - 0.5) * 10,
+    speed: 5,
+    art: { geometry: { type: "cylinder" as const } },
+    affinities: initializeAffinities(),
+    counts: affinityMap(() => 0),
+    transitions: affinityMap(() => affinityMap(() => 0)),
+    life: 100,
+    mana: 0,
+  }) as Hero;

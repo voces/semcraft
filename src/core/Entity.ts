@@ -153,16 +153,17 @@ export const newEntity = (partialEntity: Partial<Entity>) => {
   const entity = partialEntity as Entity;
   Object.defineProperty(entity, "isEntity", { value: true });
 
+  trackProp(entity, "art");
+  trackProp(entity, "isTerrain");
+  trackProp(entity, "life");
+  trackProp(entity, "mana");
+  trackProp(entity, "mesh");
+  trackProp(entity, "moveAlong");
+  trackProp(entity, "moveTo");
+  trackProp(entity, "speed");
+  trackProp(entity, "timeout");
   trackProp(entity, "x");
   trackProp(entity, "y");
-  trackProp(entity, "life");
-  trackProp(entity, "mesh");
-  trackProp(entity, "isTerrain");
-  trackProp(entity, "speed");
-  trackProp(entity, "moveTo");
-  trackProp(entity, "moveAlong");
-  trackProp(entity, "timeout");
-  trackProp(entity, "art");
 
   return entity;
 };

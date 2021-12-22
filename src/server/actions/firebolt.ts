@@ -14,16 +14,18 @@ import { currentSemcraft } from "../../semcraftContext.ts";
 import { sameOwner, setFind } from "../util.ts";
 import { Action, newCooldown } from "./util.ts";
 
-const onCooldown = newCooldown(.750);
+const onCooldown = newCooldown(750);
 
 const { calcSpellAffinity } = spellsheet([
   [Affinity.fire, 0.99],
   [Affinity.conjuration, 0.01],
 ]);
 
+const hermite = 2 / 3 ** 0.5;
+
 export const firebolt: Action<"firebolt"> = ({ x, y, mana }) => {
   const hero = currentHero();
-  if (onCooldown(hero)) return;
+  if (onCooldown(hero) || hero.mana < mana || mana < 0.1) return;
 
   // Calculate the affinity the hero has with the spell
   const [spellAffinity, burns] = calcSpellAffinity(hero);
@@ -41,14 +43,11 @@ export const firebolt: Action<"firebolt"> = ({ x, y, mana }) => {
 
   hero.mana -= mana;
 
-  const fireDamage = 20 * effectiveMana ** 1.5;
-  const physicalDamage = 10 * effectiveMana ** 1.1;
+  const conversion = (1 / (1 - spellAffinity) - 1) * effectiveMana ** hermite;
+  const fireDamage = 20 * conversion;
+  const physicalDamage = 10 * conversion;
 
   const damage = fireDamage + physicalDamage;
-
-  console.log(
-    damage,
-  );
 
   const semcraft = currentSemcraft();
   const firebolt = semcraft.add({
