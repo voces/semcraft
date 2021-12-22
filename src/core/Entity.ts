@@ -49,24 +49,22 @@ export type Entity = {
   /** y position of the entity. */
   y?: number;
 
+  /** The max life of the entity. */
+  maxLife?: number;
+
   /**
-   * The life of the entity.
+   * The life of the entity. Regenerates 1% of missing life a second (0.1
+   * minimum). Requires maxLife to be set.
    */
   life?: number;
 
-  /**
-   * The mana of the entity.
-   */
+  /** The mana of the entity. Regenerates 1/s, but caps at entity's life. */
   mana?: number;
 
-  /**
-   * The affinity the entity has with each rune.
-   */
+  /** The affinity the entity has with each rune. */
   affinities?: AffinityTuple<number>;
 
-  /**
-   * The number of times the entity has used each rune.
-   */
+  /** The number of times the entity has used each rune. */
   counts?: AffinityTuple<number>;
 
   /**
@@ -128,6 +126,7 @@ export type Entity = {
   beforeDelete?: () => void;
 };
 
+/** An entity with a position. */
 export type Widget = Entity & { x: number; y: number };
 
 const trackProp = <Prop extends keyof Entity>(

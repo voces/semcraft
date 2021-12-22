@@ -2,10 +2,17 @@ import { Affinity, AffinityTuple, Widget } from "./core/Entity.ts";
 import { currentSemcraft } from "./semcraftContext.ts";
 import { data } from "./util/data.ts";
 
-export type Hero = Widget & {
+/** An entity representing a unit. */
+type Unit = Widget & {
+  affinities?: NonNullable<Widget["affinities"]>;
+  mana?: number;
+  life: number;
+};
+
+export type Hero = Unit & {
   affinities: NonNullable<Widget["affinities"]>;
   mana: number;
-  life: number;
+  maxLife: number;
 };
 
 const { current: currentHero, set: setHero } = data<Hero>();
@@ -70,5 +77,6 @@ export const newHero = () =>
     counts: affinityMap(() => 0),
     transitions: affinityMap(() => affinityMap(() => 0)),
     life: 100,
+    maxLife: 100,
     mana: 0,
   }) as Hero;

@@ -11,7 +11,7 @@ import { tiles } from "./tiles.ts";
 import { Grid } from "../util/Grid.ts";
 import { collision } from "./systems/collision.ts";
 import { SIZE } from "../constants.ts";
-import { newManaRegenSystem } from "./systems/regen.ts";
+import { newLifeRegenSystem, newManaRegenSystem } from "./systems/regen.ts";
 
 const semcraft = newSemcraft();
 
@@ -118,7 +118,7 @@ setInterval(
               writes.map((w) => scrub(w, client.hero.entityId === w.entityId)),
             );
           } catch (err) {
-            console.log(err);
+            console.error(err);
             semcraft.delete(client.hero);
             clients.delete(client);
           }
@@ -139,6 +139,7 @@ withSemcraft(semcraft, () => {
   semcraft.addSystem(timers());
   semcraft.addSystem(collision());
   semcraft.addSystem(newManaRegenSystem());
+  semcraft.addSystem(newLifeRegenSystem());
   grid = currentGrid();
 
   tiles();
@@ -171,7 +172,7 @@ globalThis.addEventListener(
 
     clients.add(client);
 
-    console.log("client connected");
+    console.log("client", client.hero.entityId, "connected");
 
     client.port.start();
     client.port.addEventListener(
@@ -184,5 +185,3 @@ globalThis.addEventListener(
     );
   }),
 );
-
-console.log("init");
