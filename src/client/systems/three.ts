@@ -1,6 +1,7 @@
 import {
   BoxGeometry,
   BufferGeometry,
+  CylinderGeometry,
   HemisphereLight,
   Material,
   Mesh,
@@ -51,8 +52,10 @@ const initializeScene = (canvas: HTMLCanvasElement) => {
 };
 
 const defaultBox = new BoxGeometry();
-const defaultShpere = new SphereGeometry(1 / 2);
+const defaultSphere = new SphereGeometry(1 / 2);
 const defaultPlane = new PlaneGeometry();
+const defaultCylinder = new CylinderGeometry(1 / 2, 1 / 2);
+defaultCylinder.rotateX(Math.PI / 2);
 
 // Do this via memoization instead...
 const initializeGeometry = (
@@ -66,7 +69,10 @@ const initializeGeometry = (
     }
     case "sphere": {
       if (def.radius) return new SphereGeometry(def.radius);
-      return defaultShpere;
+      return defaultSphere;
+    }
+    case "cylinder": {
+      return defaultCylinder;
     }
   }
 };

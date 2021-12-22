@@ -1,6 +1,42 @@
 import type { ColorRepresentation, Object3D } from "three";
 import { currentApp } from "./appContext.ts";
 
+export type AffinityTuple<T> = [
+  fire: T,
+  frost: T,
+  lightning: T,
+  poison: T,
+  physical: T,
+  light: T,
+  life: T,
+  mana: T,
+  conjuration: T,
+  animate: T,
+  splash: T,
+  enhance: T,
+  passive: T,
+  buff: T,
+  speed: T,
+];
+
+export enum Affinity {
+  fire = 0,
+  frost,
+  lightning,
+  poison,
+  physical,
+  light,
+  life,
+  mana,
+  conjuration,
+  animate,
+  splash,
+  enhance,
+  passive,
+  buff,
+  speed,
+}
+
 export type Entity = {
   entityId: number;
 
@@ -26,17 +62,17 @@ export type Entity = {
   /**
    * The affinity the entity has with each rune.
    */
-  affinities?: number[];
+  affinities?: AffinityTuple<number>;
 
   /**
    * The number of times the entity has used each rune.
    */
-  counts?: number[];
+  counts?: AffinityTuple<number>;
 
   /**
    * The number of times the entity has transitioned between each rune.
    */
-  transitions?: number[][];
+  transitions?: AffinityTuple<AffinityTuple<number>>;
 
   /**
    * The entity that created this entity (e.g., firebolt, summon).
@@ -45,11 +81,13 @@ export type Entity = {
 
   /** Describes the mesh to be generated */
   art?: {
-    geometry?: { type: "plane" } | { type: "sphere"; radius?: number };
-    material?: { type: "tile"; index: number } | {
-      type: "phong";
-      color?: ColorRepresentation;
-    };
+    geometry?:
+      | { type: "plane" }
+      | { type: "cylinder" }
+      | { type: "sphere"; radius?: number };
+    material?:
+      | { type: "tile"; index: number }
+      | { type: "phong"; color?: ColorRepresentation };
   };
 
   /** Three.js mesh. This is not a detectable property of the entity. */

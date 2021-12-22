@@ -1,6 +1,6 @@
 import { WriteLogEntry } from "../core/App.ts";
 import { Entity, Widget } from "../core/Entity.ts";
-import { setHero } from "../hero.ts";
+import { affinityMap, Hero, initializeAffinities, setHero } from "../hero.ts";
 import { newSemcraft } from "../semcraft.ts";
 import { withSemcraft, wrapSemcraft } from "../semcraftContext.ts";
 import { actions } from "./actions/index.ts";
@@ -161,8 +161,11 @@ globalThis.addEventListener(
       x: (Math.random() - 0.5) * 10,
       y: (Math.random() - 0.5) * 10,
       speed: 5,
-      art: { geometry: { type: "sphere" as const } },
-    });
+      art: { geometry: { type: "cylinder" as const } },
+      affinities: initializeAffinities(),
+      counts: affinityMap(() => 0),
+      transitions: affinityMap(() => affinityMap(() => 0)),
+    }) as Hero;
 
     const client: Client = {
       port: event.ports[0],

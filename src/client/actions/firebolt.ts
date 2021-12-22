@@ -1,11 +1,11 @@
 import { currentMouse } from "../systems/mouse.ts";
 import { newCooldown } from "./util.ts";
 
-const onCooldown = newCooldown(750);
+const onCooldown = newCooldown(.750);
 
 export const firebolt = () => {
   if (onCooldown()) return;
 
   const { ground: { x, y } } = currentMouse();
-  return { action: "firebolt", x, y };
+  return { action: "firebolt", x, y, mana: 1 };
 };
