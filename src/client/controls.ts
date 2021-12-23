@@ -8,12 +8,12 @@ import { data } from "../util/data.ts";
 import { currentKeyboard } from "./keyboard.ts";
 import { currentMouse } from "./systems/mouse.ts";
 
-const { current: currentTransmit, set: setTransmit } = data<
+const { current: getTransmit, set: setTransmit } = data<
   (
     data: ReturnType<typeof actions[keyof typeof actions]["handle"]>,
   ) => void
 >();
-export { setTransmit };
+export { getTransmit, setTransmit };
 
 export type Controls = Partial<
   Record<string, typeof actions[keyof typeof actions]>
@@ -31,7 +31,7 @@ export const newControls = (controls: Controls) => {
     ).filter(([, v]) => v).map(([k]) => k).join(" + ");
 
     const event = await controls[hotkey]?.handle();
-    if (event) currentTransmit()(event);
+    if (event) getTransmit()(event);
   };
 
   semcraft.addEventListener("mousedown", process);
@@ -39,7 +39,7 @@ export const newControls = (controls: Controls) => {
   semcraft.addEventListener("mousemove", process);
 
   globalThis.onbeforeunload = () => {
-    withSemcraft(semcraft, () => currentTransmit()({ action: "exit" }));
+    withSemcraft(semcraft, () => getTransmit()({ action: "exit" }));
   };
 
   return { update: process };

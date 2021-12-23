@@ -17,8 +17,8 @@ import { Action, newCooldown } from "./util.ts";
 const onCooldown = newCooldown(750);
 
 const { calcSpellAffinity } = spellsheet([
-  [Affinity.poison, 0.99],
-  [Affinity.conjuration, 0.01],
+  [Affinity.poison, 0.98],
+  [Affinity.conjuration, 0.02],
 ]);
 
 const hermite = 2 / 3 ** 0.5;

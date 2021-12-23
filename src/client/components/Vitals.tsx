@@ -1,13 +1,15 @@
-import { ComponentChildren, h } from "preact";
+import { ComponentChildren, h, JSX } from "preact";
 import { Entity } from "../../core/Entity.ts";
 import { useECS } from "../hooks/useECS.ts";
+import { Text } from "./Text.tsx";
 
 const keys = ["life", "maxLife", "mana", "entityId"] as const;
 
 type Unit = Required<Pick<Entity, typeof keys[number]>>;
 
 /**
- * Formats the number to have n digits.
+ * Formats `value` as a string with `digits` significant digits. Differs from
+ * Number#toPrecision in that it does not render in scientific notation.
  * @example
  * precise(0.36, 1); // "0.4"
  * precise(0.36, 2); // "0.36"
@@ -20,10 +22,11 @@ const precision = (value: number, digits: number) => {
 };
 
 const Bar = (
-  { value, maxValue, color = "red", children }: {
+  { value, maxValue, color = "red", style, children }: {
     value: number;
     maxValue: number;
     color?: string;
+    style?: JSX.CSSProperties;
     children?: ComponentChildren;
   },
 ) => {
@@ -34,6 +37,11 @@ const Bar = (
         background: `linear-gradient(90deg, ${color}, ${percent}%, ${color}, ${
           percent + 1
         }%, transparent)`,
+        fontSize: 12,
+        textAlign: "center",
+        borderRadius: 2,
+        boxShadow: "0.5px 0.5px 3px black",
+        ...style,
       }}
     >
       {children}
@@ -41,15 +49,50 @@ const Bar = (
   );
 };
 
-const Vitals = ({ hero }: { hero: Unit }) => (
+const Vitals = ({ unit }: { unit: Unit }) => (
   <div style={{ color: "white" }}>
-    <div>Entity {hero.entityId}</div>
-    <Bar value={hero.life} maxValue={hero.maxLife} color="red">
-      Life: {precision(hero.life, 2)} / {precision(hero.maxLife, 2)}
-    </Bar>
-    <Bar value={hero.mana} maxValue={hero.maxLife} color="blue">
-      Mana: {precision(hero.mana, 2)} / {precision(hero.maxLife, 2)}
-    </Bar>
+    <span
+      style={{
+        display: "inline-block",
+        background: 'url("./assets/deadly-strike.svg")',
+        width: 72,
+        height: 72,
+        borderRadius: "50%",
+        verticalAlign: "middle",
+        zIndex: 1,
+        position: "relative",
+        boxShadow: "0.5px 0.5px 3px black",
+      }}
+    >
+    </span>
+    <span
+      style={{
+        display: "inline-block",
+        verticalAlign: "middle",
+        marginLeft: -6,
+        marginTop: -8,
+        width: 192,
+      }}
+    >
+      <Text dropShadow={3} style={{ paddingLeft: 6 }}>
+        Entity {unit.entityId}
+      </Text>
+      <Bar
+        value={unit.life}
+        maxValue={unit.maxLife}
+        color="red"
+        style={{ marginBottom: 4 }}
+      >
+        <Text dropShadow={3}>
+          {precision(unit.life, 2)} / {precision(unit.maxLife, 2)}
+        </Text>
+      </Bar>
+      <Bar value={unit.mana} maxValue={unit.maxLife} color="blue">
+        <Text dropShadow={3}>
+          {precision(unit.mana, 2)} / {precision(unit.maxLife, 2)}
+        </Text>
+      </Bar>
+    </span>
   </div>
 );
 
@@ -64,7 +107,7 @@ export const VitalsBoard = () => {
         left: 16,
       }}
     >
-      {Array.from(data.values()).map((hero) => <Vitals hero={hero} />)}
+      {Array.from(data.values()).map((unit) => <Vitals unit={unit} />)}
     </div>
   );
 };

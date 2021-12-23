@@ -1,6 +1,8 @@
 import { ComponentChildren, h } from "preact";
 import { useState } from "preact/hooks";
-import { Controls as ControlsType } from "../controls.ts";
+import { actions } from "../actions/index.ts";
+import { Controls as ControlsType, getTransmit } from "../controls.ts";
+import { Text } from "./Text.tsx";
 
 const Hotkey = (
   { size, hotkey, action }: {
@@ -10,6 +12,7 @@ const Hotkey = (
       name: string;
       icon: string;
       description?: string;
+      handle: typeof actions[keyof typeof actions]["handle"];
     }>;
   },
 ) => {
@@ -21,7 +24,7 @@ const Hotkey = (
         display: "inline-block",
         width: size,
         height: size,
-        border: "2px solid #111",
+        boxShadow: "0.5px 0.5px 3px black",
         borderRadius: 2,
         margin: size / 16,
         position: "relative",
@@ -33,16 +36,25 @@ const Hotkey = (
       }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      onClick={action
+        ? async (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const event = await action.handle();
+          if (event) getTransmit()(event);
+        }
+        : undefined}
     >
       {hovered && action && (
         <div
           style={{
             position: "absolute",
-            border: "2px solid #111",
+            boxShadow: "0.5px 0.5px 3px black",
+            borderRadius: 2,
             background: "black",
             bottom: "calc(100% + 8px)",
             left: -2,
-            padding: 2,
+            padding: 4,
             zIndex: 1,
             maxWidth: 250,
             width: "max-content",
@@ -52,19 +64,19 @@ const Hotkey = (
           {action.description && <div>{action.description}</div>}
         </div>
       )}
-      <span
+      <Text
+        dropShadow={5}
         style={{
           position: "absolute",
           left: "50%",
           transform: "translate(-50%, 50%)",
           bottom: 0,
           fontWeight: "bold",
-          filter: Array(5).fill("drop-shadow(0 0 1px black)").join(" "),
           fontSize: 13,
         }}
       >
         {hotkey}
-      </span>
+      </Text>
     </span>
   );
 };
@@ -117,3 +129,7 @@ export const Controls = (
     />
   </div>
 );
+
+function currentTransmit() {
+  throw new Error("Function not implemented.");
+}
