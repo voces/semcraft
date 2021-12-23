@@ -4,15 +4,13 @@ import { data } from "./util/data.ts";
 
 /** An entity representing a unit. */
 type Unit = Widget & {
-  affinities?: NonNullable<Widget["affinities"]>;
-  mana?: number;
   life: number;
 };
 
 export type Hero = Unit & {
   affinities: NonNullable<Widget["affinities"]>;
-  mana: number;
-  maxLife: number;
+  mana: NonNullable<Widget["mana"]>;
+  maxLife: NonNullable<Widget["maxLife"]>;
 };
 
 const { current: currentHero, set: setHero } = data<Hero>();

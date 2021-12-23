@@ -4,10 +4,13 @@ import { mouse } from "./systems/mouse.ts";
 import { moveAlongClient, moveToClient } from "./systems/movement.ts";
 import { three } from "./systems/three.ts";
 import { setHero } from "../hero.ts";
-import { newSemcraft } from "../semcraft.ts";
+import { newSemcraft, Semcraft } from "../semcraft.ts";
 import { withSemcraft, wrapSemcraft } from "../semcraftContext.ts";
 
-export const newClient = (canvas: HTMLCanvasElement, controls: Controls) => {
+export const newClient = (
+  canvas: HTMLCanvasElement,
+  controls: Controls,
+): [Semcraft, () => void] => {
   const semcraft = newSemcraft();
 
   // Setup local server
@@ -48,8 +51,9 @@ export const newClient = (canvas: HTMLCanvasElement, controls: Controls) => {
   cb();
 
   // Cleanup code
-  return () => {
+  return [semcraft, () => {
+    server.port.postMessage({ action: "exit" });
     server.port.close();
     cancelAnimationFrame(request);
-  };
+  }];
 };

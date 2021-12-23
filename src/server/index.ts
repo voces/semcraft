@@ -12,16 +12,11 @@ import { Grid } from "../util/Grid.ts";
 import { collision } from "./systems/collision.ts";
 import { SIZE } from "../constants.ts";
 import { newLifeRegenSystem, newManaRegenSystem } from "./systems/regen.ts";
+import { Client, setClient } from "./contexts/client.ts";
 
 const semcraft = newSemcraft();
 
 const AREA_OF_KNOWLEDGE = 20;
-
-type Client = {
-  port: MessagePort;
-  hero: Entity;
-  knownEntities: Set<Widget>;
-};
 
 const clients = new Set<Client>();
 
@@ -40,6 +35,7 @@ const publicAttributes = [
 const ownerAttributes = [
   "life",
   "mana",
+  "maxLife",
 ];
 
 const scrub = (write: WriteLogEntry | Entity, owned: boolean) =>
@@ -166,6 +162,12 @@ globalThis.addEventListener(
       port: event.ports[0],
       hero,
       knownEntities: new Set(),
+      close: () => {
+        // TODO: inform of closure
+        client.port.close();
+        semcraft.delete(hero);
+        clients.delete(client);
+      },
     };
 
     client.port.postMessage(scrub(hero, true));
@@ -179,9 +181,11 @@ globalThis.addEventListener(
       "message",
       wrapSemcraft(semcraft, (ev) => {
         setHero(hero);
-        console.log(ev.data);
+        setClient(client);
         actions[ev.data.action as keyof typeof actions]?.(ev.data);
       }),
     );
   }),
 );
+
+console.log("initialized");

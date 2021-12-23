@@ -26,8 +26,11 @@ export type App = {
   /** Add an entity to the App. */
   add: (partial: Partial<Entity>) => Entity;
 
-  /** Add an system to the App. */
+  /** Add a system to the App. */
   addSystem: <K extends keyof Entity>(partial: System<K>) => System<K>;
+
+  /** Remove a system from the App. */
+  deleteSystem: <K extends keyof Entity>(system: System<K>) => void;
 
   /** Apply updates from writelogs (return of update). */
   patch: (writes: WriteLogEntry[]) => void;
@@ -43,7 +46,10 @@ export const newApp = (partialApp: Partial<App>): App => {
     SIZE / 2,
     SIZE / 8,
   );
-  Object.defineProperty(globalThis, "writeLog", { value: writeLog });
+  Object.defineProperty(globalThis, "writeLog", {
+    value: writeLog,
+    configurable: true,
+  });
 
   const childPropMap: Partial<Record<keyof Entity, System<keyof Entity>[]>> =
     {};
@@ -223,6 +229,24 @@ export const newApp = (partialApp: Partial<App>): App => {
       systems.add(system);
 
       return system as System<K>;
+    };
+  }
+
+  if (!app.deleteSystem) {
+    app.deleteSystem = (system) => {
+      systemsEntities.delete(system as System<keyof Entity>);
+
+      if (system.props) {
+        for (const prop of system.props) {
+          const systems = childPropMap[prop];
+          if (systems) {
+            const index = systems.indexOf(system as System<keyof Entity>);
+            if (index >= 0) systems.splice(index);
+          }
+        }
+      }
+
+      systems.delete(system as System<keyof Entity>);
     };
   }
 

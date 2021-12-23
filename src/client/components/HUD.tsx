@@ -1,9 +1,12 @@
 import { Fragment, h } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
+import { Semcraft } from "../../semcraft.ts";
 import { actions } from "../actions/index.ts";
 import { newClient } from "../client.ts";
+import { SemcraftContext } from "../contexts/SemcraftContext.ts";
 import { Controls as ControlsType } from "../controls.ts";
 import { Controls } from "./Controls.tsx";
+import { VitalsBoard } from "./Vitals.tsx";
 
 export const HUD = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -13,11 +16,16 @@ export const HUD = () => {
     KeyQ: actions.poisonNova,
     KeyW: actions.firebolt,
   });
+  const [app, setApp] = useState<Semcraft>();
 
   useEffect(() => {
-    if (!canvasRef.current) return;
+    if (!canvasRef.current || app) return;
 
-    return newClient(canvasRef.current, controls);
+    const [semcraft] = newClient(canvasRef.current, controls);
+    setApp(semcraft);
+
+    // setApp triggers a remount, which is... unfortunate
+    // return cb;
   }, [canvasRef.current]);
 
   return (
@@ -33,7 +41,12 @@ export const HUD = () => {
           right: 0,
         }}
       />
-      <Controls controls={controls} />
+      {app && (
+        <SemcraftContext.Provider value={app}>
+          <VitalsBoard />
+          <Controls controls={controls} />
+        </SemcraftContext.Provider>
+      )}
     </>
   );
 };
