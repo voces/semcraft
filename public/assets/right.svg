@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg viewBox="50 50 100 175" width="100" height="175" xmlns="http://www.w3.org/2000/svg">
+  <path style="stroke: rgb(0, 0, 0); stroke-width: 5px; fill: rgb(229, 229, 229);" d="M 50 150 C 50 50 62.5 50 100 50 C 137.5 50 150 50 150 150 C 150 200 127.5 225 100 225 C 72.5 225 50 200 50 150 Z"/>
+  <path style="stroke: rgb(0, 0, 0); stroke-width: 5px; fill: rgb(249, 255, 130);" d="M 100 50 C 137.5 50 150 50 150 150 L 100 150 Z"/>
+</svg>

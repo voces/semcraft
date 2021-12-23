@@ -8,22 +8,19 @@ import { data } from "../util/data.ts";
 import { currentKeyboard } from "./keyboard.ts";
 import { currentMouse } from "./systems/mouse.ts";
 
-const { current, set: setTransmit } = data<
+const { current: currentTransmit, set: setTransmit } = data<
   (
-    data: ReturnType<typeof actions[keyof typeof actions]>,
+    data: ReturnType<typeof actions[keyof typeof actions]["handle"]>,
   ) => void
 >();
 export { setTransmit };
 
-export const controls = () => {
+export type Controls = Partial<
+  Record<string, typeof actions[keyof typeof actions]>
+>;
+
+export const newControls = (controls: Controls) => {
   const semcraft = currentSemcraft();
-
-  const controls: Partial<
-    Record<string, typeof actions[keyof typeof actions]>
-  > = {};
-
-  controls.Left = actions.move;
-  controls.KeyF = actions.firebolt;
 
   const mouse = currentMouse();
   const keyboard = currentKeyboard();
@@ -33,20 +30,17 @@ export const controls = () => {
       Object.entries(mouse.buttons),
     ).filter(([, v]) => v).map(([k]) => k).join(" + ");
 
-    const event = await controls[hotkey]?.();
-    if (event) current()(event);
+    const event = await controls[hotkey]?.handle();
+    if (event) currentTransmit()(event);
   };
 
   semcraft.addEventListener("mousedown", process);
   semcraft.addEventListener("keydown", process);
   semcraft.addEventListener("mousemove", process);
 
-  document.documentElement.addEventListener(
-    "mouseleave",
-    () => console.log("out"),
-  );
-
   globalThis.onbeforeunload = () => {
-    withSemcraft(semcraft, () => current()({ action: "exit" }));
+    withSemcraft(semcraft, () => currentTransmit()({ action: "exit" }));
   };
+
+  return { update: process };
 };

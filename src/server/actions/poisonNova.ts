@@ -17,13 +17,13 @@ import { Action, newCooldown } from "./util.ts";
 const onCooldown = newCooldown(750);
 
 const { calcSpellAffinity } = spellsheet([
-  [Affinity.fire, 0.99],
+  [Affinity.poison, 0.99],
   [Affinity.conjuration, 0.01],
 ]);
 
 const hermite = 2 / 3 ** 0.5;
 
-export const firebolt: Action<"firebolt"> = ({ x, y, mana }) => {
+export const poisonNova: Action<"poisonNova"> = ({ x, y, mana }) => {
   const hero = currentHero();
   if (onCooldown(hero) || hero.mana < mana || mana < 0.1) return;
 
@@ -44,44 +44,49 @@ export const firebolt: Action<"firebolt"> = ({ x, y, mana }) => {
   hero.mana -= mana;
 
   const conversion = (1 / (1 - spellAffinity) - 1) * effectiveMana ** hermite;
-  const fireDamage = 20 * conversion;
-  const physicalDamage = 10 * conversion;
+  const poisonDamage = 3 * conversion;
+  const physicalDamage = 0.25 * conversion;
 
-  const damage = fireDamage + physicalDamage;
+  const damage = poisonDamage + physicalDamage;
 
   const semcraft = currentSemcraft();
-  const firebolt = semcraft.add({
-    owner: hero,
-    x: hero.x,
-    y: hero.y,
-    moveAlong: Math.atan2(y - hero.y!, x - hero.x!),
-    art: {
-      geometry: {
-        type: "sphere",
-        radius: 0.125,
+
+  const baseAngle = Math.atan2(y - hero.y, x - hero.x);
+  for (let i = 0; i < 12; i++) {
+    const poisonNova = semcraft.add({
+      owner: hero,
+      x: hero.x,
+      y: hero.y,
+      moveAlong: baseAngle + i * Math.PI / 6,
+      art: {
+        geometry: {
+          type: "sphere",
+          radius: 0.1,
+        },
+        material: {
+          type: "phong",
+          color: "green",
+        },
       },
-      material: {
-        type: "phong",
-        color: "red",
+      speed: 5,
+      timeout: {
+        remaining: 4,
+        callback: () => semcraft.delete(poisonNova),
       },
-    },
-    speed: 5,
-    timeout: {
-      remaining: 4,
-      callback: () => semcraft.delete(firebolt),
-    },
-    collision: {
-      radius: 0.5,
-      callback: (entities) => {
-        const entity = setFind(entities, (e) => !sameOwner(e, hero));
-        if (entity) {
-          semcraft.delete(firebolt);
-          if (typeof entity.life === "number" && entity.life > 0) {
-            entity.life -= damage;
-            if (entity.life <= 0) semcraft.delete(entity);
+      collision: {
+        radius: 0.5,
+        callback: (entities) => {
+          const entity = setFind(entities, (e) => !sameOwner(e, hero));
+          if (entity) {
+            semcraft.delete(poisonNova);
+            if (typeof entity.life === "number" && entity.life > 0) {
+              // TODO: damage is more complicated, especially poison!
+              entity.life -= damage;
+              if (entity.life <= 0) semcraft.delete(entity);
+            }
           }
-        }
+        },
       },
-    },
-  });
+    });
+  }
 };

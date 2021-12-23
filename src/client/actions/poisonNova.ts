@@ -4,16 +4,15 @@ import { newCooldown } from "./util.ts";
 
 const onCooldown = newCooldown(750);
 
-export const firebolt = {
+export const poisonNova = {
   name: "Fire bolt",
-  // https://game-icons.net/1x1/lorc/plasma-bolt.html
-  icon: "./assets/firebolt.svg",
-  description: "Fires a fire bolt.",
+  icon: "./assets/poisonnova.svg",
+  description: "Fires a nova of poison.",
   handle: () => {
     const hero = currentHero();
     if (hero.mana < 0.1 || onCooldown()) return;
 
     const { ground: { x, y } } = currentMouse();
-    return { action: "firebolt", x, y, mana: Math.min(hero.mana, 5) };
+    return { action: "poisonNova", x, y, mana: Math.min(hero.mana, 5) };
   },
 };

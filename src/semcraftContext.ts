@@ -4,12 +4,12 @@ import type { Semcraft } from "./semcraft.ts";
 export const withSemcraft = <T>(
   semcraft: Semcraft,
   fn: (semcraft: Semcraft) => T,
-): T => withApp(semcraft, fn);
+): Promise<T> => withApp(semcraft, fn);
 
 export const wrapSemcraft = <Args extends unknown[], Return extends unknown>(
   semcraft: Semcraft,
   fn: (...args: Args) => Return,
-): ((...args: Args) => Return) => wrapApp(semcraft, fn);
+): ((...args: Args) => Promise<Return>) => wrapApp(semcraft, fn);
 
 export const currentSemcraft = (): Semcraft => {
   const app = currentApp();
