@@ -5,7 +5,10 @@ export const newManaRegenSystem = () => ({
   props: ["mana"],
   updateChild: (entity, delta) => {
     // Mana regen is fixed at 1/s
-    entity.mana = Math.min(entity.life ?? entity.mana, entity.mana + delta);
+    entity.mana = Math.max(
+      Math.min(entity.life ?? entity.mana, entity.mana + delta),
+      entity.mana,
+    );
   },
 } as System<"mana">);
 

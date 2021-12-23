@@ -45,10 +45,10 @@ const Vitals = ({ hero }: { hero: Unit }) => (
   <div style={{ color: "white" }}>
     <div>Entity {hero.entityId}</div>
     <Bar value={hero.life} maxValue={hero.maxLife} color="red">
-      Life: {precision(hero.life, 2)} / {hero.maxLife}
+      Life: {precision(hero.life, 2)} / {precision(hero.maxLife, 2)}
     </Bar>
-    <Bar value={hero.mana} maxValue={hero.life} color="blue">
-      Mana: {precision(hero.mana, 2)} / {precision(hero.life, 2)}
+    <Bar value={hero.mana} maxValue={hero.maxLife} color="blue">
+      Mana: {precision(hero.mana, 2)} / {precision(hero.maxLife, 2)}
     </Bar>
   </div>
 );
