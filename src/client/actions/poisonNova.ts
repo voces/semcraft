@@ -5,7 +5,7 @@ import { newCooldown } from "./util.ts";
 const onCooldown = newCooldown(750);
 
 export const poisonNova = {
-  name: "Fire bolt",
+  name: "Poison nova",
   icon: "./assets/poisonnova.svg",
   description: "Fires a nova of poison.",
   handle: () => {

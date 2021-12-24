@@ -5,3 +5,4 @@ import { poisonNova } from "./poisonNova.ts";
 
 export const actions = { firebolt, move, exit, poisonNova };
 export type ClientActions = typeof actions;
+export type ClientAction = ClientActions[keyof ClientActions];

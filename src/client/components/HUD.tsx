@@ -4,13 +4,13 @@ import { Semcraft } from "../../semcraft.ts";
 import { actions } from "../actions/index.ts";
 import { newClient } from "../client.ts";
 import { SemcraftContext } from "../contexts/SemcraftContext.ts";
-import { Controls as ControlsType } from "../controls.ts";
-import { Controls } from "./Controls.tsx";
+import { Controls } from "../controls.ts";
+import { ActionBar } from "./ActionBar.tsx";
 import { VitalsBoard } from "./Vitals.tsx";
 
 export const HUD = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [controls] = useState<ControlsType>({
+  const [controls] = useState<Controls>({
     Left: actions.move,
     Right: actions.firebolt,
     KeyQ: actions.poisonNova,
@@ -44,7 +44,7 @@ export const HUD = () => {
       {app && (
         <SemcraftContext.Provider value={app}>
           <VitalsBoard />
-          <Controls controls={controls} />
+          <ActionBar controls={controls} />
         </SemcraftContext.Provider>
       )}
     </>
