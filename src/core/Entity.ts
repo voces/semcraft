@@ -142,8 +142,7 @@ const trackProp = <Prop extends keyof Entity>(
     set: (newValue) => {
       const changed = newValue !== value;
       value = newValue;
-      // TODO: why pass newValue? It's just entity[prop]
-      if (changed) app.onEntityPropChange(entity, prop, newValue);
+      if (changed) app.onEntityPropChange(entity, prop);
     },
     ...propertyDescriptor,
   });

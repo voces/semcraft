@@ -27,6 +27,14 @@ export const ActionSelection = (
               action={action}
               size={48}
               onLeftClick={() => onSelection(action)}
+              // TODO: add onRightClick, which allows customizing the action.
+              // E.g., with fire bolt, allow the user to specify a cooldown,
+              // flat mana, percentage mana (of remaining or total?), and max
+              // mana. E.g.,
+              // Cooldown: 0.25s
+              // Flat mana: 0.1
+              // Percent mana: 5% [x] Remaining [ ] Total
+              // Max mana: 2.5% [ ] Remaining [x] Total
             />
           ))}
         </div>

@@ -1,13 +1,3 @@
-/**
- * IDEA!
- * Instead of a simple cast rate modifier, we could make it a fun calculation.
- * - We'll track each usage of a specific rune.
- * - We'll track each transition from rune A to rune B.
- * - The total cast time will be:
- *   sum(usages.map(t => 10_000/(t + 10_000))) + sum(transitions.map(t => 2_500/(t + 10_000)))
- * - Note unlike affinities, this is not zero-sum.
- */
-
 import { Affinity, AffinityTuple } from "../../core/Entity.ts";
 import { currentHero, normalize, spellsheet } from "../../hero.ts";
 import { currentSemcraft } from "../../semcraftContext.ts";
@@ -68,13 +58,13 @@ export const poisonNova: Action<"poisonNova"> = ({ x, y, mana }) => {
           color: "green",
         },
       },
-      speed: 5,
+      speed: 3,
       timeout: {
         remaining: 4,
         callback: () => semcraft.delete(poisonNova),
       },
       collision: {
-        radius: 0.5,
+        radius: 0.4,
         callback: (entities) => {
           const entity = setFind(entities, (e) => !sameOwner(e, hero));
           if (entity) {

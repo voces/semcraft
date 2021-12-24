@@ -15,6 +15,7 @@ export const HUD = () => {
     Right: actions.firebolt,
     KeyQ: actions.poisonNova,
     KeyW: actions.firebolt,
+    KeyE: actions.fireball,
   });
   const [app, setApp] = useState<Semcraft>();
 

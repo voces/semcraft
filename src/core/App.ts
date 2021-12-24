@@ -17,7 +17,6 @@ export type App = {
   onEntityPropChange: <Property extends keyof Entity>(
     entity: Entity,
     property: Property,
-    value: Entity[Property],
   ) => void;
 
   /** Remove the entity from the app and all systems. */
@@ -110,17 +109,18 @@ export const newApp = (partialApp: Partial<App>): App => {
   }
 
   if (!app.onEntityPropChange) {
-    app.onEntityPropChange = (entity, property, value) => {
+    app.onEntityPropChange = (entity, property) => {
       // Update write log
-      if (writeLog.has(entity)) writeLog.patch(entity, { [property]: value });
-      else if (typeof entity.x === "number" && typeof entity.y === "number") {
+      if (writeLog.has(entity)) {
+        writeLog.patch(entity, { [property]: entity[property] });
+      } else if (typeof entity.x === "number" && typeof entity.y === "number") {
         writeLog.set(entity, {
           entityId: entity.entityId,
           x: entity.x,
           y: entity.y,
           // TODO: this could be a bug if property is x/y and the value is null
-          // or undefined
-          [property]: value,
+          // or undefined. But why would that ever happen?
+          [property]: entity[property],
         });
       }
 
@@ -132,7 +132,7 @@ export const newApp = (partialApp: Partial<App>): App => {
           // Fast path: mutating a single value and other values are good
           if (entities?.has(entity)) {
             // Just a mutation
-            if (value != null) {
+            if (entity[property] != null) {
               // deno-lint-ignore no-explicit-any
               system.onChange?.(entity as any);
 
