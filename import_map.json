@@ -1,7 +1,7 @@
 {
     "imports": {
-        "preact": "https://esm.sh/preact?pin=v57",
-        "preact/hooks": "https://esm.sh/preact/hooks?pin=v57",
-        "three": "https://esm.sh/three?pin=v57"
+        "preact": "https://esm.sh/preact?pin=v58",
+        "preact/hooks": "https://esm.sh/preact/hooks?pin=v58",
+        "three": "https://esm.sh/three?pin=v58"
     }
 }

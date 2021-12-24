@@ -1,0 +1,6 @@
+esbuild "$@" \
+    src/spelldata.tsx \
+    --bundle --format=esm --tsconfig=deno.jsonc \
+    --external:preact/hooks --external:preact \
+    --outdir=public/js
+    

@@ -20,46 +20,53 @@
  * - Splash effects DAMAGE SPREAD, where damage is asymptotic with distance.
  */
 
-import { Affinity, AffinityTuple } from "../../core/Entity.ts";
-import { currentHero, normalize, spellsheet } from "../../hero.ts";
+import { Affinity } from "../../core/Entity.ts";
+import { currentHero, normalizeAffinities } from "../../hero.ts";
 import { currentSemcraft } from "../../semcraftContext.ts";
 import { sameOwner, setFind } from "../util.ts";
 import { Action, newCooldown } from "./util.ts";
 
 const onCooldown = newCooldown(750);
 
-const { calcSpellAffinity } = spellsheet([
-  [Affinity.fire, 0.99],
-  [Affinity.conjuration, 0.01],
-]);
-
-const hermite = 2 / 3 ** 0.5;
-
-export const firebolt: Action<"firebolt"> = ({ x, y, mana }) => {
+export const firebolt: Action<"firebolt"> = (
+  { x, y, fireMana: fire, conjurationMana: conjuration },
+) => {
+  // Verify spell can be used
   const hero = currentHero();
+  const mana = fire + conjuration;
   if (onCooldown(hero) || hero.mana < mana || mana < 0.1) return;
 
-  // Calculate the affinity the hero has with the spell
-  const [spellAffinity, burns] = calcSpellAffinity(hero);
-  if (spellAffinity < 0.1 || hero.mana < mana) return;
+  // Adjust affinities
+  hero.affinities[Affinity.fire] +=
+    (fire * (1 - hero.affinities[Affinity.fire])) ** (1 / 3) / 1000;
+  hero.affinities[Affinity.conjuration] +=
+    (conjuration * (1 - hero.affinities[Affinity.conjuration])) ** (1 / 3) /
+    1000;
+  hero.affinities = normalizeAffinities(hero.affinities);
 
   // Calculate the mana used in the spell
-  const effectiveMana = mana * spellAffinity;
-  const p = 2 / effectiveMana ** (1 / 3);
-
-  hero.affinities = normalize(
-    hero.affinities.map((a, i) => a + (burns[i] ** p) / 1000),
-    (v, sum) => ((v ** 3) / sum) ** (1 / 3),
-    (item) => item ** 3,
-  ) as AffinityTuple<number>;
-
+  fire *= hero.affinities[Affinity.fire];
+  conjuration *= hero.affinities[Affinity.conjuration];
   hero.mana -= mana;
 
-  const conversion = (1 / (1 - spellAffinity) - 1) * effectiveMana ** hermite;
-  const fireDamage = 20 * conversion;
-  const physicalDamage = 5 * conversion;
+  // Calculate spell components
+  const speed = ((fire + conjuration) / conjuration) ** 0.5 / 2;
+  const physicalDamage = conjuration * (speed / 2) ** 2 * 4;
+  const fireDamage = fire * 10;
+  const damage = physicalDamage + fireDamage;
+  const size = conjuration ** 0.4 * 2;
+  const duration = fire ** 0.1 + conjuration ** 0.2 * 6;
 
-  const damage = fireDamage + physicalDamage;
+  console.log({
+    fire,
+    conjuration,
+    speed,
+    physicalDamage,
+    fireDamage,
+    damage,
+    size,
+    duration,
+  });
 
   const semcraft = currentSemcraft();
   const firebolt = semcraft.add({
@@ -70,20 +77,20 @@ export const firebolt: Action<"firebolt"> = ({ x, y, mana }) => {
     art: {
       geometry: {
         type: "sphere",
-        radius: 0.125,
+        radius: size,
       },
       material: {
         type: "phong",
-        color: "red",
+        color: "red", // TODO: tint based off fire/conjuration?
       },
     },
-    speed: 5,
+    speed,
     timeout: {
-      remaining: 4,
+      remaining: duration,
       callback: () => semcraft.delete(firebolt),
     },
     collision: {
-      radius: 0.5,
+      radius: size + 0.5,
       callback: (entities) => {
         const entity = setFind(entities, (e) => !sameOwner(e, hero));
         if (!entity) return;

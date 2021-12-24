@@ -19,8 +19,8 @@ export { currentHero, setHero };
 export const affinityMap = <T>(fn: (index: number) => T) =>
   Array.from(Array(Affinity.speed + 1), (_, k) => fn(k)) as AffinityTuple<T>;
 
-export const normalize = (
-  arr: number[],
+export const normalize = <T extends number[]>(
+  arr: T,
   fn = (item: number, sum: number) => item / sum,
   sumFn?: (item: number) => number,
 ) => {
@@ -28,8 +28,11 @@ export const normalize = (
     ? arr.reduce((sum, v) => sum + sumFn(v), 0)
     : arr.reduce((sum, v) => sum + v, 0);
 
-  return arr.map((v) => fn(v, sum));
+  return arr.map((v) => fn(v, sum)) as T;
 };
+
+export const normalizeAffinities = <T extends number[]>(arr: T) =>
+  normalize(arr, (v, sum) => ((v ** 3) / sum) ** (1 / 3), (item) => item ** 3);
 
 /** Generate random hero affinities. */
 export const initializeAffinities = (): AffinityTuple<number> =>

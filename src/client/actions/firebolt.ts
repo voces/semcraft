@@ -13,7 +13,15 @@ export const firebolt = {
     const hero = currentHero();
     if (hero.mana < 0.1 || onCooldown()) return;
 
+    const mana = Math.min(hero.mana, 5);
+
     const { ground: { x, y } } = currentMouse();
-    return { action: "firebolt", x, y, mana: Math.min(hero.mana, 5) };
+    return {
+      action: "firebolt",
+      x,
+      y,
+      fireMana: mana * 0.99,
+      conjurationMana: mana * 0.01,
+    };
   },
 };

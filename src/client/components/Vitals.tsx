@@ -1,25 +1,12 @@
 import { ComponentChildren, h, JSX } from "preact";
 import { Entity } from "../../core/Entity.ts";
+import { precision } from "../../util/formatting.ts";
 import { useECS } from "../hooks/useECS.ts";
 import { Text } from "./Text.tsx";
 
 const keys = ["life", "maxLife", "mana", "entityId"] as const;
 
 type Unit = Required<Pick<Entity, typeof keys[number]>>;
-
-/**
- * Formats `value` as a string with `digits` significant digits. Differs from
- * Number#toPrecision in that it does not render in scientific notation.
- * @example
- * precise(0.36, 1); // "0.4"
- * precise(0.36, 2); // "0.36"
- * precise(0.36, 3); // "0.360"
- * precise(360, 1); // "400"
- */
-const precision = (value: number, digits: number) => {
-  const precise = value.toPrecision(digits);
-  return precise.includes("e") ? parseFloat(precise) : precise;
-};
 
 const Bar = (
   { value, maxValue, color = "red", style, children }: {
