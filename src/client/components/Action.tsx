@@ -31,7 +31,6 @@ export const Action = (
         // background:
         //   `conic-gradient(transparent, 90%, transparent, 90%, rgba(0,0,255,0.5)), url("${action
         //     ?.icon}"), black`,
-        color: "white",
       }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}

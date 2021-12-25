@@ -15,6 +15,10 @@ export const keyboard = () => {
   globalThis.addEventListener(
     "keydown",
     wrapSemcraft(semcraft, (e) => {
+      if (e.target instanceof HTMLElement && e.target.nodeName !== "BODY") {
+        return;
+      }
+
       keyboard[e.code] = true;
       currentSemcraft().dispatchEvent("keydown", keyboard);
     }),
@@ -23,6 +27,10 @@ export const keyboard = () => {
   globalThis.addEventListener(
     "keyup",
     wrapSemcraft(semcraft, (e) => {
+      if (e.target instanceof HTMLElement && e.target.nodeName !== "BODY") {
+        return;
+      }
+
       keyboard[e.code] = false;
       currentSemcraft().dispatchEvent("keyup", keyboard);
     }),

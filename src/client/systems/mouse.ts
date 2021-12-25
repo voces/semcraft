@@ -90,6 +90,10 @@ export const mouse = () => {
   globalThis.addEventListener(
     "mouseup",
     wrapSemcraft(semcraft, (e) => {
+      if (e.target instanceof HTMLElement && e.target.nodeName !== "CANVAS") {
+        return;
+      }
+
       if (e.button === 0) mouse.buttons.Left = false;
       else if (e.button === 1) mouse.buttons.Middle = false;
       else if (e.button === 2) mouse.buttons.Right = false;

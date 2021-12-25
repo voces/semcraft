@@ -85,7 +85,10 @@ export const ActionBar = (
         >
           <ActionSelection
             // Note: IDK why this works. Should have to trigger a re-render...?
-            onSelection={(action) => controls[showSelection] = action}
+            onSelection={(action) => {
+              controls[showSelection] = action;
+              setShowSelection(undefined);
+            }}
           />
         </div>
       )}

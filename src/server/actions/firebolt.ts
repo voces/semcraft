@@ -26,7 +26,7 @@ import { currentSemcraft } from "../../semcraftContext.ts";
 import { sameOwner, setFind } from "../util.ts";
 import { Action, newCooldown } from "./util.ts";
 
-const onCooldown = newCooldown(750);
+const onCooldown = newCooldown(100);
 
 export const firebolt: Action<"firebolt"> = (
   { x, y, fireMana: fire, conjurationMana: conjuration },

@@ -37,7 +37,7 @@ const Bar = (
 };
 
 const Vitals = ({ unit }: { unit: Unit }) => (
-  <div style={{ color: "white" }}>
+  <div>
     <span
       style={{
         display: "inline-block",
