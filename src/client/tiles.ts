@@ -1,9 +1,26 @@
-import { Material, MeshPhongMaterial, NearestFilter, Texture } from "three";
+import { Material, MeshPhongMaterial, Texture } from "three";
 
-const QUALITY = 256;
+const QUALITY = 64;
 const FILL = 0.98;
-const textures: Record<number, Texture> = {};
+const textures: Texture[] = [];
 const materials = new Map<Texture, Material>();
+
+// Computed by (in canvasTexture):
+// 1) const newMap = new Map<string, number[]>();
+// 2) Add the following aftenr fn():
+//      hash = canvas.toDataURL();
+//      newMap.set(hash, (newMap.get(hash) ?? []).concat(idx));
+// 3) console.log(
+//      JSON.stringify(
+//        Array.from(newMap.values()).reduce((arr, values, i) => {
+//          for (const value of values) arr[value] = i;
+//          return arr;
+//        }, []),
+//      ),
+//    );
+//
+// deno-fmt-ignore
+const map = [0,0,0,0,0,0,0,0,0,0,1,1,0,0,1,1,2,3,4,5,6,7,8,9,10,11,12,12,13,14,15,15,0,0,16,16,0,0,16,16,0,0,17,17,0,0,17,17,18,19,20,21,22,23,20,21,24,25,26,26,27,28,26,26,0,0,0,0,0,0,0,0,0,0,1,1,0,0,1,1,29,30,31,32,33,34,35,36,37,38,39,39,40,41,42,42,0,0,16,16,0,0,16,16,0,0,17,17,0,0,17,17,43,44,45,46,47,48,45,46,49,50,51,51,52,53,51,51,0,0,0,0,0,0,0,0,54,54,55,55,54,54,55,55,56,57,58,59,60,61,62,63,64,65,66,66,67,68,69,69,70,70,71,71,70,70,71,71,72,72,73,73,72,72,73,73,74,75,76,77,78,79,76,77,80,81,82,82,83,84,82,82,0,0,0,0,0,0,0,0,54,54,55,55,54,54,55,55,85,86,87,88,89,90,91,92,64,65,66,66,67,68,69,69,70,70,71,71,70,70,71,71,72,72,73,73,72,72,73,73,93,94,95,96,97,98,95,96,80,81,82,82,83,84,82,82,0,0,0,0,0,0,0,0,0,0,1,1,0,0,1,1,99,100,101,102,103,104,105,106,107,108,109,109,110,111,112,112,0,0,16,16,0,0,16,16,0,0,17,17,0,0,17,17,113,114,115,116,117,118,115,116,119,120,121,121,122,123,121,121,0,0,0,0,0,0,0,0,0,0,1,1,0,0,1,1,124,125,126,127,128,129,130,131,132,133,134,134,135,136,137,137,0,0,16,16,0,0,16,16,0,0,17,17,0,0,17,17,138,139,140,141,142,143,140,141,144,145,146,146,147,148,146,146,0,0,0,0,0,0,0,0,54,54,55,55,54,54,55,55,149,150,151,152,153,154,155,156,157,158,159,159,160,161,162,162,70,70,71,71,70,70,71,71,72,72,73,73,72,72,73,73,74,75,76,77,78,79,76,77,80,81,82,82,83,84,82,82,0,0,0,0,0,0,0,0,54,54,55,55,54,54,55,55,163,164,165,166,167,168,169,170,157,158,159,159,160,161,162,162,70,70,71,71,70,70,71,71,72,72,73,73,72,72,73,73,93,94,95,96,97,98,95,96,80,81,82,82,83,84,82,82];
 
 const hourglass = (
   ctx: CanvasRenderingContext2D,
@@ -36,37 +53,32 @@ const hourglass = (
   ctx.fill();
 };
 
+// We can use a Cache here with canvas.toBlob() functionality to speed up
+// reloads, but I made it pretty fast for now.
 const canvasTexture = (
+  idx: number,
   fn: (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => void,
 ): Texture => {
-  let hash = 0;
-  let canvas;
+  if (textures[map[idx]]) return textures[map[idx]];
 
-  try {
-    canvas = document.createElement("canvas");
-    canvas.width = QUALITY;
-    canvas.height = QUALITY;
+  const texture = new Texture();
 
-    const context = canvas.getContext("2d")!;
-    context.fillStyle = "#133a2b";
-    context.fillRect(0, 0, QUALITY, QUALITY);
-    context.fillStyle = "#0b4f35";
-    fn(context, canvas);
+  setTimeout(() => {
+    try {
+      const canvas = document.createElement("canvas");
+      canvas.width = QUALITY;
+      canvas.height = QUALITY;
 
-    // Crap hashing; it breaks down if QUALITY is changed
-    const bits = context.getImageData(0, 0, QUALITY, QUALITY).data;
-    for (let i = 0; i < bits.length; i += 809) {
-      hash = ((hash + 2217911) * bits[i]) % 14689313;
-    }
-  } catch { /* ignore errors */ }
+      const context = canvas.getContext("2d")!;
+      context.fillStyle = "#133a2b";
+      context.fillRect(0, 0, QUALITY, QUALITY);
+      context.fillStyle = "#0b4f35";
+      fn(context, canvas);
 
-  if (textures[hash]) return textures[hash];
-
-  const texture = new Texture(canvas);
-  texture.needsUpdate = true;
-  texture.magFilter = texture.minFilter = NearestFilter;
-
-  textures[hash] = texture;
+      texture.image = canvas;
+      texture.needsUpdate = true;
+    } catch { /* ignore errors */ }
+  });
 
   return texture;
 };
@@ -84,7 +96,7 @@ const BOTRIGHT = 256;
 export const materialsBitmap = Array(2 ** 9)
   .fill(0)
   .map((_, i) =>
-    canvasTexture((ctx) => {
+    canvasTexture(i, (ctx) => {
       const half = QUALITY / 2;
       const diameter = QUALITY * FILL;
       const radius = diameter / 2;
