@@ -8,18 +8,6 @@
  * - Note unlike affinities, this is not zero-sum.
  */
 
-/**
- * Another idea!
- * Make each component configurable by the user, and have the components impact
- * the result. For fire bolt:
- * - Conjuration effects SIZE.
- * - Fire effects DAMAGE.
- * For fire ball:
- * - Conjuration effects SIZE.
- * - Fire effects DAMAGE.
- * - Splash effects DAMAGE SPREAD, where damage is asymptotic with distance.
- */
-
 import { Affinity } from "../../core/Entity.ts";
 import { currentHero, normalizeAffinities } from "../../hero.ts";
 import { currentSemcraft } from "../../semcraftContext.ts";
@@ -56,17 +44,6 @@ export const firebolt: Action<"firebolt"> = (
   const damage = physicalDamage + fireDamage;
   const size = conjuration ** 0.2 / 2;
   const duration = fire ** 0.1 + conjuration ** 0.2 * 6;
-
-  console.log({
-    fire,
-    conjuration,
-    speed,
-    physicalDamage,
-    fireDamage,
-    damage,
-    size,
-    duration,
-  });
 
   const semcraft = currentSemcraft();
   const firebolt = semcraft.add({
