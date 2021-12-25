@@ -40,9 +40,9 @@ const ActionCustomization = (
             setCooldown(Math.max(0.1, parseFloat(e.currentTarget.value)))}
         />
 
-        {"mana" in action &&
-          Object.entries(action.mana).map(([type, amount]) => (
-            <>
+        {manas &&
+          Object.entries(manas).map(([type, amount]) => (
+            <Fragment key={type}>
               <div style={{ fontSize: 20, paddingTop: 12 }}>
                 {type[0].toUpperCase() + type.slice(1)}
               </div>
@@ -58,7 +58,7 @@ const ActionCustomization = (
                     [type]: parseFloat(e.currentTarget.value),
                   })}
               />
-            </>
+            </Fragment>
           ))}
 
         <button
