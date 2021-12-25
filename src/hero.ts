@@ -1,4 +1,4 @@
-import { Affinity, AffinityTuple, Widget } from "./core/Entity.ts";
+import { affinityCount, AffinityTuple, Widget } from "./core/Entity.ts";
 import { currentSemcraft } from "./semcraftContext.ts";
 import { data } from "./util/data.ts";
 
@@ -16,10 +16,10 @@ export type Hero = Unit & {
 const { current: currentHero, set: setHero } = data<Hero>();
 export { currentHero, setHero };
 
-export const affinityMap = <T>(fn: (index: number) => T) =>
-  Array.from(Array(Affinity.speed + 1), (_, k) => fn(k)) as AffinityTuple<T>;
+const affinityMap = <T>(fn: (index: number) => T) =>
+  Array.from(Array(affinityCount + 1), (_, k) => fn(k)) as AffinityTuple<T>;
 
-export const normalize = <T extends number[]>(
+const normalize = <T extends number[]>(
   arr: T,
   fn = (item: number, sum: number) => item / sum,
   sumFn?: (item: number) => number,
@@ -35,38 +35,15 @@ export const normalizeAffinities = <T extends number[]>(arr: T) =>
   normalize(arr, (v, sum) => ((v ** 3) / sum) ** (1 / 3), (item) => item ** 3);
 
 /** Generate random hero affinities. */
-export const initializeAffinities = (): AffinityTuple<number> =>
-  Array(Affinity.speed + 1).fill(
-    (1 / (Affinity.speed + 1)) ** (1 / 3),
+const initializeAffinities = (): AffinityTuple<number> =>
+  Array(affinityCount + 1).fill(
+    (1 / (affinityCount + 1)) ** (1 / 3),
   ) as AffinityTuple<number>;
 //   normalize(
 //     affinityMap(() => Math.random()),
 //     (v, sum) => ((v ** 3) / sum) ** (1 / 3),
 //     (item) => item ** 3,
 //   ) as AffinityTuple<number>;
-
-export const spellsheet = (
-  affinities: [affinityIndex: number, affinity: number][],
-) => {
-  const parts = Array(Affinity.speed + 1).fill(0) as AffinityTuple<number>;
-  for (const [index, affinity] of affinities) parts[index] = affinity;
-
-  const manaWeights = normalize(
-    parts.map((v) => v ** 0.5),
-  ) as AffinityTuple<number>;
-
-  const calcSpellAffinity = (hero: Hero): [number, AffinityTuple<number>] => {
-    let sum = 0;
-    const burns = affinityMap(() => 0);
-    for (let i = 0; i < hero.affinities.length; i++) {
-      sum += hero.affinities[i] * manaWeights[i];
-      burns[i] = (1 - hero.affinities[i]) * manaWeights[i];
-    }
-    return [sum, burns];
-  };
-
-  return { parts, manaWeights, calcSpellAffinity };
-};
 
 export const newHero = () =>
   currentSemcraft().add({

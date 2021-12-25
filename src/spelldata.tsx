@@ -2,6 +2,7 @@ import "./util/livereload.ts";
 import { Fragment, h, render } from "preact";
 import { useState } from "preact/hooks";
 import { precision } from "./util/formatting.ts";
+import { Affinity, affinityCount } from "./core/Entity.ts";
 
 /**
  * Whether data is normalized with mana expenditure (efficiency). Helpful to
@@ -62,7 +63,38 @@ const fireball: Spellsheet = {
   },
 };
 
-const spells: Record<string, Spellsheet | undefined> = { firebolt, fireball };
+const poisonNova: Spellsheet = {
+  inputs: { poison: 0.98, conjuration: 0.02 },
+  fn: (manas: number[], affinities: number[]) => {
+    const [poison, conjuration] = manas.map((m, i) => m * affinities[i]);
+
+    const bolts = 12;
+    const speed = ((poison + conjuration) / conjuration) ** 0.5 / 2;
+    const physicalDamage = (conjuration * (speed / 2) ** 2 * 4) / bolts ** 0.5;
+    const poisonDamage = (poison * 10) / bolts ** 0.5;
+    const damage = physicalDamage + poisonDamage;
+    const size = (conjuration ** 0.2 / 2) / bolts ** 0.5;
+    const boltDuration = (poison ** 0.1 + conjuration ** 0.2 * 6) /
+      bolts ** 0.5;
+    const duration = (poison ** 0.3 * 50 + conjuration ** 0.1) / bolts ** 0.5;
+
+    return {
+      speed,
+      physicalDamage,
+      poisonDamage,
+      damage,
+      size,
+      boltDuration,
+      duration,
+    };
+  },
+};
+
+const spells: Record<string, Spellsheet | undefined> = {
+  firebolt,
+  fireball,
+  poisonNova,
+};
 
 const breakpoints = [
   0.01,
@@ -214,7 +246,9 @@ const App = () => {
   const spell = spells[spellId];
 
   const [affinities, setAffinities] = useState<number[]>(
-    Array(Object.keys(spell?.inputs ?? {}).length).fill(0.405),
+    Array(Object.keys(spell?.inputs ?? {}).length).fill(
+      parseFloat(((1 / (affinityCount + 1)) ** (1 / 3)).toFixed(3)),
+    ),
   );
   const [mana, setMana] = useState<(number | "a" | "b")[]>(
     () => [

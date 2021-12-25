@@ -1,48 +1,57 @@
-import { Affinity, AffinityTuple } from "../../core/Entity.ts";
-import { currentHero, normalize, spellsheet } from "../../hero.ts";
+import { Affinity } from "../../core/Entity.ts";
+import { currentHero, normalizeAffinities } from "../../hero.ts";
 import { currentSemcraft } from "../../semcraftContext.ts";
 import { sameOwner, setFind } from "../util.ts";
 import { Action, newCooldown } from "./util.ts";
 
 const onCooldown = newCooldown(750);
 
-const { calcSpellAffinity } = spellsheet([
-  [Affinity.poison, 0.98],
-  [Affinity.conjuration, 0.02],
-]);
-
-const hermite = 2 / 3 ** 0.5;
-
-export const poisonNova: Action<"poisonNova"> = ({ x, y, mana }) => {
+export const poisonNova: Action<"poisonNova"> = (
+  { x, y, poisonMana: poison, conjurationMana: conjuration },
+) => {
+  // Verify spell can be used
   const hero = currentHero();
+  const mana = poison + conjuration;
   if (onCooldown(hero) || hero.mana < mana || mana < 0.1) return;
 
-  // Calculate the affinity the hero has with the spell
-  const [spellAffinity, burns] = calcSpellAffinity(hero);
-  if (spellAffinity < 0.1 || hero.mana < mana) return;
+  // Adjust affinities
+  hero.affinities[Affinity.poison] +=
+    (poison * (1 - hero.affinities[Affinity.poison])) ** (1 / 3) / 1000;
+  hero.affinities[Affinity.conjuration] +=
+    (conjuration * (1 - hero.affinities[Affinity.conjuration])) ** (1 / 3) /
+    1000;
+  hero.affinities = normalizeAffinities(hero.affinities);
 
   // Calculate the mana used in the spell
-  const effectiveMana = mana * spellAffinity;
-  const p = 2 / effectiveMana ** (1 / 3);
-
-  hero.affinities = normalize(
-    hero.affinities.map((a, i) => a + (burns[i] ** p) / 1000),
-    (v, sum) => ((v ** 3) / sum) ** (1 / 3),
-    (item) => item ** 3,
-  ) as AffinityTuple<number>;
-
+  poison *= hero.affinities[Affinity.poison];
+  conjuration *= hero.affinities[Affinity.conjuration];
   hero.mana -= mana;
 
-  const conversion = (1 / (1 - spellAffinity) - 1) * effectiveMana ** hermite;
-  const poisonDamage = 3 * conversion;
-  const physicalDamage = 0.25 * conversion;
+  // Calculate spell components
+  const bolts = 12;
+  const speed = ((poison + conjuration) / conjuration) ** 0.5 / 2;
+  const physicalDamage = (conjuration * (speed / 2) ** 2 * 4) / bolts ** 0.5;
+  const poisonDamage = (poison * 10) / bolts ** 0.5;
+  const damage = physicalDamage + poisonDamage;
+  const size = (conjuration ** 0.2 / 2) / bolts ** 0.5;
+  const boltDuration = (poison ** 0.1 + conjuration ** 0.2 * 6) /
+    bolts ** 0.5;
+  // const duration = (poison ** 0.3 * 50 + conjuration ** 0.1) / bolts ** 0.5;
 
-  const damage = poisonDamage + physicalDamage;
+  console.log({
+    bolts,
+    speed,
+    physicalDamage,
+    poisonDamage,
+    damage,
+    size,
+    boltDuration,
+  });
 
   const semcraft = currentSemcraft();
 
   const baseAngle = Math.atan2(y - hero.y, x - hero.x);
-  for (let i = 0; i < 12; i++) {
+  for (let i = 0; i < bolts; i++) {
     const poisonNova = semcraft.add({
       owner: hero,
       x: hero.x,
@@ -51,20 +60,20 @@ export const poisonNova: Action<"poisonNova"> = ({ x, y, mana }) => {
       art: {
         geometry: {
           type: "sphere",
-          radius: 0.1,
+          radius: size,
         },
         material: {
           type: "phong",
           color: "green",
         },
       },
-      speed: 3,
+      speed,
       timeout: {
-        remaining: 4,
+        remaining: boltDuration,
         callback: () => semcraft.delete(poisonNova),
       },
       collision: {
-        radius: 0.4,
+        radius: size + 0.5,
         callback: (entities) => {
           const entity = setFind(entities, (e) => !sameOwner(e, hero));
           if (entity) {

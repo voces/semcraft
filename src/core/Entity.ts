@@ -21,21 +21,33 @@ export type AffinityTuple<T> = [
 
 export enum Affinity {
   fire = 0,
+  /** Frost/cold. */
   frost,
   lightning,
   poison,
+  /** Physical/kinetic. */
   physical,
+  /** Light/holy. */
   light,
+  /** Life/death. */
   life,
+  /** Pure mana, such as for generic shields or regeneration. */
   mana,
+  /** Conjuration/creation */
   conjuration,
+  /** Animation (skeletons, conjurations, etc). */
   animate,
+  /** Spread capability. Think radiuses. */
   splash,
+  /** Enhancing a target, such as one self, a weapon, an ally, or enemy. */
   enhance,
+  /** Meta affinity for when a spell is used passively (auras). */
   passive,
+  /** Meta affinity for when a spell has a long term duration (enchant). */
   buff,
-  speed,
 }
+
+export const affinityCount = Affinity.buff;
 
 export type Entity = {
   entityId: number;
