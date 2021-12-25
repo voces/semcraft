@@ -63,7 +63,7 @@ const canvasTexture = (
 
   const texture = new Texture();
 
-  setTimeout(() => {
+  queueMicrotask(() => {
     try {
       const canvas = document.createElement("canvas");
       canvas.width = QUALITY;

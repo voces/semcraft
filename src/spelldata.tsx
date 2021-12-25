@@ -22,7 +22,7 @@ const firebolt: SpellSheet = {
     const physicalDamage = conjuration * (speed / 2) ** 2 * 4;
     const fireDamage = fire * 10;
     const damage = physicalDamage + fireDamage;
-    const size = conjuration ** 0.4 * 2;
+    const size = conjuration ** 0.2 / 2;
     const duration = fire ** 0.1 + conjuration ** 0.2 * 6;
 
     return {
