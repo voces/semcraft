@@ -1,6 +1,7 @@
 const clamp = (min: number, value: number, max: number) =>
   value < min ? min : value > max ? max : value;
 
+// TODO: Allow bounding boxes/radius
 export class Grid<T extends { x: number; y: number }> {
   cells: (Set<T> | undefined)[][];
   #min: number;

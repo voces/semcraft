@@ -2,7 +2,7 @@ import { Affinity } from "../../core/Entity.ts";
 import { currentHero, normalizeAffinities } from "../../hero.ts";
 import { currentSemcraft } from "../../semcraftContext.ts";
 import { currentGrid } from "../systems/grid.ts";
-import { sameOwner, setFind } from "../util.ts";
+import { setFind } from "../util.ts";
 import { Action, newCooldown } from "./util.ts";
 
 const onCooldown = newCooldown(100);
@@ -43,7 +43,7 @@ export const fireball: Action<"fireball"> = (
 
   const semcraft = currentSemcraft();
   const fireball = semcraft.add({
-    owner: hero,
+    owner: hero.owner,
     x: hero.x,
     y: hero.y,
     moveAlong: Math.atan2(y - hero.y!, x - hero.x!),
@@ -65,7 +65,7 @@ export const fireball: Action<"fireball"> = (
     collision: {
       radius: size + 0.5,
       callback: (entities) => {
-        const entity = setFind(entities, (e) => !sameOwner(e, hero));
+        const entity = setFind(entities, (e) => e.owner != fireball.owner);
         if (!entity) return;
 
         semcraft.delete(fireball);
@@ -77,7 +77,7 @@ export const fireball: Action<"fireball"> = (
         );
 
         for (const entity of targets) {
-          if (sameOwner(entity, hero)) continue;
+          if (entity.owner === fireball.owner) continue;
           if (typeof entity.life === "number" && entity.life > 0) {
             const distance = (entity.y - fireball.y!) ** 2 +
               (entity.x - fireball.x!) ** 2;

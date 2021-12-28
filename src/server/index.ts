@@ -29,6 +29,7 @@ const publicAttributes = [
   "moveAlong",
   "moveTo",
   "name",
+  "owner",
   "speed",
   "x",
   "y",
@@ -144,11 +145,11 @@ withSemcraft(semcraft, () => {
 
   const beforeDelete = () =>
     semcraft.add({
-      x: (Math.random() - 0.5) * SIZE,
-      y: (Math.random() - 0.5) * SIZE,
+      x: Math.round((Math.random() - 0.5) * SIZE * 100) / 100,
+      y: Math.round((Math.random() - 0.5) * SIZE * 100) / 100,
       life: 25,
       beforeDelete,
-      art: {},
+      art: { geometry: { type: "cylinder" } },
     });
 
   for (let i = 0; i < 100; i++) beforeDelete();

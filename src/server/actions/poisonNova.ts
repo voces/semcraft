@@ -1,7 +1,7 @@
 import { Affinity } from "../../core/Entity.ts";
 import { currentHero, normalizeAffinities } from "../../hero.ts";
 import { currentSemcraft } from "../../semcraftContext.ts";
-import { addPoison, sameOwner, setFind } from "../util.ts";
+import { addPoison, setFind } from "../util.ts";
 import { Action, newCooldown } from "./util.ts";
 
 const onCooldown = newCooldown(100);
@@ -46,7 +46,7 @@ export const poisonNova: Action<"poisonNova"> = (
   const baseAngle = Math.atan2(y - hero.y, x - hero.x);
   for (let i = 0; i < bolts; i++) {
     const poisonNova = semcraft.add({
-      owner: hero,
+      owner: hero.entityId,
       x: hero.x,
       y: hero.y,
       moveAlong: baseAngle + i * Math.PI / 6,
@@ -68,7 +68,7 @@ export const poisonNova: Action<"poisonNova"> = (
       collision: {
         radius: size + 0.5,
         callback: (entities) => {
-          const entity = setFind(entities, (e) => !sameOwner(e, hero));
+          const entity = setFind(entities, (e) => e.owner !== poisonNova.owner);
           if (entity) {
             semcraft.delete(poisonNova);
             if (typeof entity.life === "number" && entity.life > 0) {

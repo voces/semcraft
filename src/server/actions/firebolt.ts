@@ -11,7 +11,7 @@
 import { Affinity } from "../../core/Entity.ts";
 import { currentHero, normalizeAffinities } from "../../hero.ts";
 import { currentSemcraft } from "../../semcraftContext.ts";
-import { sameOwner, setFind } from "../util.ts";
+import { setFind } from "../util.ts";
 import { Action, newCooldown } from "./util.ts";
 
 const onCooldown = newCooldown(100);
@@ -47,7 +47,7 @@ export const firebolt: Action<"firebolt"> = (
 
   const semcraft = currentSemcraft();
   const firebolt = semcraft.add({
-    owner: hero,
+    owner: hero.owner,
     x: hero.x,
     y: hero.y,
     moveAlong: Math.atan2(y - hero.y!, x - hero.x!),
@@ -69,7 +69,7 @@ export const firebolt: Action<"firebolt"> = (
     collision: {
       radius: size + 0.5,
       callback: (entities) => {
-        const entity = setFind(entities, (e) => !sameOwner(e, hero));
+        const entity = setFind(entities, (e) => e.owner !== firebolt.owner);
         if (!entity) return;
 
         semcraft.delete(firebolt);

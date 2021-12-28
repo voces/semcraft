@@ -2,6 +2,7 @@ import { useState } from "preact/hooks";
 import { Fragment, h } from "preact";
 import { actions, ClientAction } from "../actions/index.ts";
 import { Action } from "./Action.tsx";
+import { Text } from "./Text.tsx";
 
 const ActionCustomization = (
   { action, onSelection }: {
@@ -28,8 +29,12 @@ const ActionCustomization = (
           marginRight: 20,
         }}
       >
-        <div style={{ fontSize: 30 }}>{action.name}</div>
-        <div style={{ fontSize: 20, paddingTop: 12 }}>Cooldown</div>
+        <div style={{ fontSize: 30 }}>
+          <Text dropShadow={3}>{action.name}</Text>
+        </div>
+        <div style={{ fontSize: 20, paddingTop: 12 }}>
+          <Text dropShadow={3}>Cooldown</Text>
+        </div>
         <input
           autoFocus
           type="number"
@@ -44,14 +49,16 @@ const ActionCustomization = (
           Object.entries(manas).map(([type, amount]) => (
             <Fragment key={type}>
               <div style={{ fontSize: 20, paddingTop: 12 }}>
-                {type[0].toUpperCase() + type.slice(1)}
+                <Text dropShadow={3}>
+                  {type[0].toUpperCase() + type.slice(1)}
+                </Text>
               </div>
 
               <input
                 type="number"
                 step="0.05"
                 value={amount}
-                style={{ width: 100, display: "block" }}
+                style={{ width: 100 }}
                 onInput={(e) =>
                   setManas({
                     ...manas!,
@@ -62,7 +69,7 @@ const ActionCustomization = (
           ))}
 
         <button
-          style={{ marginTop: 12 }}
+          style={{ marginTop: 12, marginLeft: "auto", display: "block" }}
           onClick={() => {
             "formulate" in action &&
               // Can probably avoid this cast by using generics

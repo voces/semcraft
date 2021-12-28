@@ -28,7 +28,7 @@ const initializeGeometry = memoize((
       return new SphereGeometry(1 / 2);
     }
     case "cylinder": {
-      const cylinder = new CylinderGeometry(1 / 2, 1 / 2);
+      const cylinder = new CylinderGeometry(1 / 2, 1 / 2, 1, 20, 1);
       cylinder.rotateX(Math.PI / 2);
       return cylinder;
     }

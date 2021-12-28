@@ -79,18 +79,14 @@ export type Entity = {
   /** The number of times the entity has used each rune. */
   counts?: AffinityTuple<number>;
 
-  /**
-   * The number of times the entity has transitioned between each rune.
-   */
+  /** The number of times the entity has transitioned between each rune. */
   transitions?: AffinityTuple<AffinityTuple<number>>;
 
   /** Poisons the entity is inflicted with. */
   poisons?: { damage: number; remaining: number }[];
 
-  /**
-   * The entity that created this entity (e.g., firebolt, summon).
-   */
-  owner?: Entity;
+  /** The entity that created this entity (e.g., firebolt, summon). */
+  owner?: Entity["entityId"];
 
   /** Describes the mesh to be generated */
   art?: {
@@ -166,6 +162,7 @@ const trackProp = <Prop extends keyof Entity>(
 export const newEntity = (partialEntity: Partial<Entity>) => {
   const entity = partialEntity as Entity;
   Object.defineProperty(entity, "isEntity", { value: true });
+  if (entity.owner === undefined) entity.owner = entity.entityId;
 
   trackProp(entity, "art");
   trackProp(entity, "isTerrain");
