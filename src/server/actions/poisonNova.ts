@@ -4,7 +4,7 @@ import { currentSemcraft } from "../../semcraftContext.ts";
 import { addPoison, sameOwner, setFind } from "../util.ts";
 import { Action, newCooldown } from "./util.ts";
 
-const onCooldown = newCooldown(750);
+const onCooldown = newCooldown(100);
 
 export const poisonNova: Action<"poisonNova"> = (
   { x, y, poisonMana: poison, conjurationMana: conjuration },
@@ -12,7 +12,11 @@ export const poisonNova: Action<"poisonNova"> = (
   // Verify spell can be used
   const hero = currentHero();
   const mana = poison + conjuration;
-  if (onCooldown(hero) || hero.mana < mana || mana < 0.1) return;
+  const a = onCooldown(hero);
+  if (a || hero.mana < mana || mana < 0.1) {
+    console.log(a, hero.mana, mana);
+    return;
+  }
 
   // Adjust affinities
   hero.affinities[Affinity.poison] +=

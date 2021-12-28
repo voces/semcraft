@@ -1,7 +1,7 @@
 import { currentHero } from "../../hero.ts";
 import { Action, newCooldown } from "./util.ts";
 
-const onCooldown = newCooldown(250);
+const onCooldown = newCooldown(100);
 
 export const move: Action<"move"> = (data) => {
   const hero = currentHero();

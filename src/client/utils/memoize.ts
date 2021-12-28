@@ -11,8 +11,8 @@ const orderedStringify = (value: unknown): string => {
 
     const keys = Object.keys(value).sort();
     return `{${
-      // deno-lint-ignore no-explicit-any
       keys.map((key) =>
+        // deno-lint-ignore no-explicit-any
         `${escapeKey(key)}:${orderedStringify((value as any)[key])}`
       ).join(
         ",",
@@ -35,7 +35,7 @@ const orderedStringify = (value: unknown): string => {
 // NOTE: this prevents proper cleanup. We can probably do proper cleanup by
 // also weakref'ing the function itself
 // deno-lint-ignore ban-types
-const maps = new Set<Map<string, WeakRef<object>>>();
+const maps = new Set<[Map<string, WeakRef<object>>, WeakRef<Function>]>();
 
 export const memoize = <
   Args extends unknown[],
@@ -45,8 +45,7 @@ export const memoize = <
   fn: (...args: Args) => Return,
 ) => {
   const map = new Map<string, WeakRef<Return>>();
-  maps.add(map);
-  return (...args: Args) => {
+  const wrapped = (...args: Args) => {
     const key = orderedStringify(args);
 
     const existingValue = map.get(key)?.deref();
@@ -56,13 +55,17 @@ export const memoize = <
     map.set(key, new WeakRef(newValue));
     return newValue;
   };
+
+  maps.add([map, new WeakRef(wrapped)]);
+  return wrapped;
 };
 
 let outer = maps.values();
 const temp = outer.next();
-let map = temp.done ? undefined : temp.value;
+let [map, fn] = temp.done ? [] : temp.value;
 // deno-lint-ignore ban-types
 let inner = map ? map.entries() : new Map<string, WeakRef<object>>().entries();
+let firstMap = map;
 
 setInterval(() => {
   let iterations = 1000;
@@ -71,18 +74,27 @@ setInterval(() => {
     let next = inner.next();
 
     if (next.done) {
+      // Get next Map
       let temp = outer.next();
       if (temp.done) {
         outer = maps.values();
         temp = outer.next();
-        if (temp.done) break; // maps is empty
+        if (temp.done) break; // There are no Maps
       }
-      map = temp.value;
-      inner = temp.value.entries();
+
+      [map, fn] = temp.value;
+
+      // The memoized function is no longer in memory, delete the map
+      if (!fn.deref()) maps.delete(temp.value);
+
+      if (map === firstMap) break; // Looped around all Maps
+      if (!firstMap) firstMap = map;
+
+      inner = map.entries();
       next = inner.next();
     }
 
-    if (next.done) continue; // a map is empty
+    if (next.done) continue; // The Map is empty, continue to next
 
     const [key, ref] = next.value;
 

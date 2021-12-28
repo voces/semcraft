@@ -25,8 +25,8 @@ const fireboltFormula = (
         action: "firebolt",
         x,
         y,
-        fireMana: mana.fire * p,
-        conjurationMana: mana.conjuration * p,
+        fireMana: mana.fire * p - 1e-15,
+        conjurationMana: mana.conjuration * p - 1e-15,
       };
     },
     cooldown,
