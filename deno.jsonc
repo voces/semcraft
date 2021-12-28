@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "lib": ["deno.ns", "dom"],
+    "lib": ["deno.unstable", "dom"],
     "jsxFactory": "h",
     "jsxFragmentFactory": "Fragment"
   },

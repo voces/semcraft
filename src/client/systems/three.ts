@@ -1,22 +1,12 @@
 import {
-  BoxGeometry,
-  BufferGeometry,
-  CylinderGeometry,
   HemisphereLight,
-  Material,
-  Mesh,
-  MeshPhongMaterial,
   PerspectiveCamera,
-  PlaneGeometry,
   Scene,
-  SphereGeometry,
   WebGLRenderer,
 } from "three";
-import { Entity } from "../../core/Entity.ts";
 import { System } from "../../core/System.ts";
 import { currentHero } from "../../hero.ts";
 import { data } from "../../util/data.ts";
-import { materialsBitmap } from "../tiles.ts";
 
 const { current: currentThree, set } = data<{
   camera: PerspectiveCamera;
@@ -51,65 +41,13 @@ const initializeScene = (canvas: HTMLCanvasElement) => {
   return [scene, camera, renderer] as const;
 };
 
-const defaultBox = new BoxGeometry();
-const defaultSphere = new SphereGeometry(1 / 2);
-const defaultPlane = new PlaneGeometry();
-const defaultCylinder = new CylinderGeometry(1 / 2, 1 / 2);
-defaultCylinder.rotateX(Math.PI / 2);
-
-// Do this via memoization instead...
-const initializeGeometry = (
-  def: Required<Entity>["art"]["geometry"],
-): BufferGeometry => {
-  if (!def) return defaultBox;
-
-  switch (def.type) {
-    case "plane": {
-      return defaultPlane;
-    }
-    case "sphere": {
-      if (def.radius) return new SphereGeometry(def.radius);
-      return defaultSphere;
-    }
-    case "cylinder": {
-      return defaultCylinder;
-    }
-  }
-};
-
-const defaultMaterial = new MeshPhongMaterial({ color: 0xffffff });
-
-const initializeMaterial = (
-  def: Required<Entity>["art"]["material"],
-): Material => {
-  if (!def) return defaultMaterial;
-
-  switch (def.type) {
-    case "tile":
-      return materialsBitmap[def.index];
-    case "phong":
-      return new MeshPhongMaterial({ color: def.color });
-  }
-};
-
-const initializeMesh = (entity: Entity) => {
-  const geometry = initializeGeometry(entity.art?.geometry);
-  const material = initializeMaterial(entity.art?.material);
-
-  const mesh = new Mesh(geometry, material);
-  mesh.castShadow = true;
-  mesh.receiveShadow = true;
-
-  return mesh;
-};
-
 export const three = (canvas: HTMLCanvasElement) => {
   const [scene, camera, renderer] = initializeScene(canvas);
 
   set({ scene, camera });
 
   return {
-    props: ["x", "y"],
+    props: ["x", "y", "mesh"],
     update: () => {
       renderer.render(scene, camera);
       try {
@@ -121,19 +59,14 @@ export const three = (canvas: HTMLCanvasElement) => {
       } catch { /* do nothing */ }
     },
     onAdd: (entity) => {
-      if (!entity.mesh) entity.mesh = initializeMesh(entity);
-      Object.defineProperty(entity.mesh, "userData", { value: entity });
+      entity.mesh.position.x = entity.x;
+      entity.mesh.position.y = entity.y;
 
-      entity.mesh!.position.x = entity.x!;
-      entity.mesh!.position.y = entity.y!;
-
-      scene.add(entity.mesh!);
+      scene.add(entity.mesh);
     },
     onChange: (entity) => {
-      const mesh = entity.mesh;
-      if (!mesh) return;
-      mesh.position.x = entity.x;
-      mesh.position.y = entity.y;
+      entity.mesh.position.x = entity.x;
+      entity.mesh.position.y = entity.y;
 
       try {
         const hero = currentHero();
@@ -144,7 +77,9 @@ export const three = (canvas: HTMLCanvasElement) => {
       } catch { /*do nothing*/ }
     },
     onRemove: (entity) => {
-      scene.remove(entity.mesh!);
+      // TODO: store the mesh in in a weakmap to ensure removal if someone sets
+      // it to undefined
+      if (entity.mesh) scene.remove(entity.mesh);
     },
-  } as System<"x" | "y">;
+  } as System<"x" | "y" | "mesh">;
 };

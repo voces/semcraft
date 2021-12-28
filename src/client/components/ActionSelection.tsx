@@ -64,9 +64,10 @@ const ActionCustomization = (
         <button
           style={{ marginTop: 12 }}
           onClick={() => {
-            console.log("click!", "formulate" in action, cooldown, manas);
             "formulate" in action &&
-              onSelection(action.formulate(cooldown, manas!));
+              // Can probably avoid this cast by using generics
+              // deno-lint-ignore no-explicit-any
+              onSelection(action.formulate(cooldown, manas as any));
           }}
         >
           Save

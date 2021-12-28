@@ -6,6 +6,7 @@ import { three } from "./systems/three.ts";
 import { setHero } from "../hero.ts";
 import { newSemcraft, Semcraft } from "../semcraft.ts";
 import { withSemcraft, wrapSemcraft } from "../semcraftContext.ts";
+import { newMeshFromArtSystem } from "./systems/meshFromArt.ts";
 
 export const newClient = (
   canvas: HTMLCanvasElement,
@@ -36,6 +37,7 @@ export const newClient = (
       semcraft.addSystem(moveToClient());
       semcraft.addSystem(moveAlongClient());
       semcraft.addSystem(mouse());
+      semcraft.addSystem(newMeshFromArtSystem());
       semcraft.addSystem(three(canvas));
       keyboard();
       semcraft.addSystem(newControls(controls));

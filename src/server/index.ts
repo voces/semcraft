@@ -13,6 +13,7 @@ import { collision } from "./systems/collision.ts";
 import { SIZE } from "../constants.ts";
 import { newLifeRegenSystem, newManaRegenSystem } from "./systems/regen.ts";
 import { Client, setClient } from "./contexts/client.ts";
+import { newPoisonSystem } from "./systems/poison.ts";
 
 const semcraft = newSemcraft();
 
@@ -136,6 +137,7 @@ withSemcraft(semcraft, () => {
   semcraft.addSystem(collision());
   semcraft.addSystem(newManaRegenSystem());
   semcraft.addSystem(newLifeRegenSystem());
+  semcraft.addSystem(newPoisonSystem());
   grid = currentGrid();
 
   tiles();
@@ -146,6 +148,7 @@ withSemcraft(semcraft, () => {
       y: (Math.random() - 0.5) * SIZE,
       life: 25,
       beforeDelete,
+      art: {},
     });
 
   for (let i = 0; i < 100; i++) beforeDelete();

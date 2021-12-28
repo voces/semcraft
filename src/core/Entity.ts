@@ -1,4 +1,4 @@
-import type { ColorRepresentation, Object3D } from "three";
+import type { ColorRepresentation, Mesh } from "three";
 import { currentApp } from "./appContext.ts";
 
 export type AffinityTuple<T> = [
@@ -84,6 +84,9 @@ export type Entity = {
    */
   transitions?: AffinityTuple<AffinityTuple<number>>;
 
+  /** Poisons the entity is inflicted with. */
+  poisons?: { damage: number; remaining: number }[];
+
   /**
    * The entity that created this entity (e.g., firebolt, summon).
    */
@@ -101,7 +104,7 @@ export type Entity = {
   };
 
   /** Three.js mesh. This is not a detectable property of the entity. */
-  mesh?: Object3D;
+  mesh?: Mesh;
 
   /** The movement speed of the entity. */
   speed?: number;
@@ -171,6 +174,7 @@ export const newEntity = (partialEntity: Partial<Entity>) => {
   trackProp(entity, "mesh");
   trackProp(entity, "moveAlong");
   trackProp(entity, "moveTo");
+  trackProp(entity, "poisons");
   trackProp(entity, "speed");
   trackProp(entity, "timeout");
   trackProp(entity, "x");

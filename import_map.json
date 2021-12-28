@@ -2,6 +2,7 @@
     "imports": {
         "preact": "https://esm.sh/preact?pin=v58",
         "preact/hooks": "https://esm.sh/preact/hooks?pin=v58",
-        "three": "https://esm.sh/three?pin=v58"
+        "three": "https://esm.sh/three?pin=v58",
+        "std/": "https://deno.land/std@0.119.0/"
     }
 }
