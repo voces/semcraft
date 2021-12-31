@@ -14,6 +14,7 @@ import { SIZE } from "../constants.ts";
 import { newLifeRegenSystem, newManaRegenSystem } from "./systems/regen.ts";
 import { Client, setClient } from "./contexts/client.ts";
 import { newPoisonSystem } from "./systems/poison.ts";
+import { newAISystem } from "./systems/ai.ts";
 
 const semcraft = newSemcraft();
 
@@ -79,6 +80,7 @@ setInterval(
                 newEntities.add(entity);
                 newEntityIds.add(entity.entityId);
                 writes.push(entity);
+                entity.active = (entity.active ?? 0) + 1;
               }
             }
 
@@ -103,6 +105,8 @@ setInterval(
                   y: entity.y!,
                   deleted: true,
                 });
+                if (entity.active! <= 1) entity.active = undefined;
+                else entity.active = (entity.active ?? 0) - 1;
               }
             }
             client.knownEntities = nearEntities;
@@ -139,18 +143,40 @@ withSemcraft(semcraft, () => {
   semcraft.addSystem(newManaRegenSystem());
   semcraft.addSystem(newLifeRegenSystem());
   semcraft.addSystem(newPoisonSystem());
+  semcraft.addSystem(newAISystem());
   grid = currentGrid();
 
   tiles();
 
-  const beforeDelete = () =>
-    semcraft.add({
+  const beforeDelete = () => {
+    let near: Widget[];
+    return semcraft.add({
       x: Math.round((Math.random() - 0.5) * SIZE * 100) / 100,
       y: Math.round((Math.random() - 0.5) * SIZE * 100) / 100,
       life: 25,
       beforeDelete,
       art: { geometry: { type: "cylinder" } },
+      speed: 2,
+      owner: -1,
+      ai: {
+        check: (e) => !e.moveTo && Math.random() > 0.99,
+        true: {
+          check: (e) => {
+            near = Array.from(grid.queryPoint(e.x!, e.y!, 5)).filter((v) =>
+              !v.isTerrain && v.owner !== e.owner
+            );
+            return near.length > 0;
+          },
+          true: (e) => e.moveTo = { x: near[0].x, y: near[0].y },
+          false: (e) =>
+            e.moveTo = {
+              x: e.x! + (Math.random() - 0.5) * 3,
+              y: e.y! + (Math.random() - 0.5) * 3,
+            },
+        },
+      },
     });
+  };
 
   for (let i = 0; i < 100; i++) beforeDelete();
 });

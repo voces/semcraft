@@ -49,6 +49,12 @@ export enum Affinity {
 
 export const affinityCount = Affinity.buff;
 
+export type DecisionTree = {
+  check: (entity: Entity) => boolean;
+  true?: DecisionTree | ((entity: Entity) => void);
+  false?: DecisionTree | ((entity: Entity) => void);
+};
+
 export type Entity = {
   entityId: number;
 
@@ -111,6 +117,15 @@ export type Entity = {
   /** A direction, in radians, an entity will be moved along. */
   moveAlong?: number;
 
+  /** Count of player entities that see this entity. */
+  active?: number;
+
+  /** Give the entity automated actions. */
+  ai?: DecisionTree;
+
+  /** A flag to turn on/off AI for entities. Useful for entities that are off-screen. */
+  aiActive?: boolean;
+
   /** Like setTimeout, but via the Entity-Component-System. */
   timeout?: {
     /** Seconds remaining until callback is invoked. */
@@ -164,6 +179,7 @@ export const newEntity = (partialEntity: Partial<Entity>) => {
   Object.defineProperty(entity, "isEntity", { value: true });
   if (entity.owner === undefined) entity.owner = entity.entityId;
 
+  trackProp(entity, "active");
   trackProp(entity, "art");
   trackProp(entity, "isTerrain");
   trackProp(entity, "life");
