@@ -15,6 +15,9 @@ import { newLifeRegenSystem, newManaRegenSystem } from "./systems/regen.ts";
 import { Client, setClient } from "./contexts/client.ts";
 import { newPoisonSystem } from "./systems/poison.ts";
 import { newAISystem } from "./systems/ai.ts";
+import { newAttackSystem } from "./systems/attack.ts";
+import { newLockoutSystem } from "./systems/lockouts.ts";
+import { newDeathSystem } from "./systems/death.ts";
 
 const semcraft = newSemcraft();
 
@@ -144,6 +147,9 @@ withSemcraft(semcraft, () => {
   semcraft.addSystem(newLifeRegenSystem());
   semcraft.addSystem(newPoisonSystem());
   semcraft.addSystem(newAISystem());
+  semcraft.addSystem(newAttackSystem());
+  semcraft.addSystem(newLockoutSystem());
+  semcraft.addSystem(newDeathSystem());
   grid = currentGrid();
 
   tiles();
@@ -158,21 +164,32 @@ withSemcraft(semcraft, () => {
       art: { geometry: { type: "cylinder" } },
       speed: 2,
       owner: -1,
+      attack: {
+        range: 1,
+        damage: 5,
+        cooldown: 1,
+      },
       ai: {
-        check: (e) => !e.moveTo && Math.random() > 0.99,
-        true: {
-          check: (e) => {
-            near = Array.from(grid.queryPoint(e.x!, e.y!, 5)).filter((v) =>
-              !v.isTerrain && v.owner !== e.owner
-            );
-            return near.length > 0;
-          },
-          true: (e) => e.moveTo = { x: near[0].x, y: near[0].y },
-          false: (e) =>
-            e.moveTo = {
-              x: e.x! + (Math.random() - 0.5) * 3,
-              y: e.y! + (Math.random() - 0.5) * 3,
-            },
+        check: (e) => {
+          // Idle check
+          if (e.moveTo || e.attackTarget || Math.random() < 0.9) return "none";
+
+          // Attack
+          near = Array.from(grid.queryPoint(e.x!, e.y!, 5)).filter((v) =>
+            !v.isTerrain && v.owner !== e.owner
+          );
+          if (near.length) {
+            e.attackTarget = near[0];
+            return "none";
+          }
+
+          // Randomly move
+          e.moveTo = {
+            x: e.x! + (Math.random() - 0.5) * 3,
+            y: e.y! + (Math.random() - 0.5) * 3,
+          };
+
+          return "none";
         },
       },
     });

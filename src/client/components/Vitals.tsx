@@ -74,9 +74,9 @@ const Vitals = ({ unit }: { unit: Unit }) => (
           {precision(unit.life, 2)} / {precision(unit.maxLife, 2)}
         </Text>
       </Bar>
-      <Bar value={unit.mana} maxValue={unit.maxLife} color="blue">
+      <Bar value={unit.mana} maxValue={unit.life} color="blue">
         <Text dropShadow={3}>
-          {precision(unit.mana, 2)} / {precision(unit.maxLife, 2)}
+          {precision(unit.mana, 2)} / {precision(unit.life, 2)}
         </Text>
       </Bar>
     </span>

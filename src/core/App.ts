@@ -85,7 +85,7 @@ export const newApp = (partialApp: Partial<App>): App => {
 
   if (!app.delete) {
     app.delete = (child) => {
-      child.beforeDelete?.();
+      if (child.beforeDelete?.(child) === false) return;
 
       for (const system of systems) {
         const entities = systemsEntities.get(system);

@@ -82,7 +82,6 @@ export const fireball: Action<"fireball"> = (
             const distance = (entity.y - fireball.y!) ** 2 +
               (entity.x - fireball.x!) ** 2;
             entity.life -= damage * (1 - (distance / r2));
-            if (entity.life <= 0) semcraft.delete(entity);
           }
         }
       },

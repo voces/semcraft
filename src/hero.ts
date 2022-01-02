@@ -57,4 +57,10 @@ export const newHero = () =>
     life: 100,
     maxLife: 100,
     mana: 0,
+    beforeDelete: (e) => {
+      e.x = (Math.random() - 0.5) * 10;
+      e.y = (Math.random() - 0.5) * 10;
+      e.life = e.maxLife;
+      return false;
+    },
   }) as Hero;

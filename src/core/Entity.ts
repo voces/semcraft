@@ -50,9 +50,8 @@ export enum Affinity {
 export const affinityCount = Affinity.buff;
 
 export type DecisionTree = {
-  check: (entity: Entity) => boolean;
-  true?: DecisionTree | ((entity: Entity) => void);
-  false?: DecisionTree | ((entity: Entity) => void);
+  check: (entity: Entity) => string;
+  [branch: string]: DecisionTree | ((entity: Entity) => void);
 };
 
 export type Entity = {
@@ -69,6 +68,35 @@ export type Entity = {
 
   /** The max life of the entity. */
   maxLife?: number;
+
+  /**
+   * Remaining seconds before the entity can perform another action. This could
+   * be due to just casting a spell, attacking, being knockbacked, stunned, or
+   * a plethora of other things.
+   */
+  lockout?: number;
+
+  attackTarget?: Widget;
+
+  /** Description of the entity's basic attack. */
+  attack?: {
+    /**
+     * How far away other entities can be, exclusive of either entity's radius.
+     */
+    range: number;
+
+    /**
+     * Base physical damage from attack, before application of modifiers from
+     * spells or items
+     */
+    damage: number;
+
+    /**
+     * Base cooldown period between attacks, before application of modifiers
+     * from spells or items.
+     */
+    cooldown: number;
+  };
 
   /**
    * The life of the entity. Regenerates 1% of missing life a second (0.1
@@ -148,8 +176,11 @@ export type Entity = {
   /** A flag to mark the entity as a piece of terrain. */
   isTerrain?: boolean;
 
-  /** A callback that is called before the entity is deleted. */
-  beforeDelete?: () => void;
+  /**
+   * A callback that is called before the entity is deleted. If the callback
+   * returns false, the entity is not deleted.
+   */
+  beforeDelete?: (entity: Entity) => void | boolean;
 };
 
 /** An entity with a position. */
@@ -181,8 +212,10 @@ export const newEntity = (partialEntity: Partial<Entity>) => {
 
   trackProp(entity, "active");
   trackProp(entity, "art");
+  trackProp(entity, "attackTarget");
   trackProp(entity, "isTerrain");
   trackProp(entity, "life");
+  trackProp(entity, "lockout");
   trackProp(entity, "mana");
   trackProp(entity, "mesh");
   trackProp(entity, "moveAlong");

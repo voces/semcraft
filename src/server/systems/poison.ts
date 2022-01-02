@@ -43,7 +43,5 @@ export const newPoisonSystem = () => ({
     }
 
     entity.life -= damage;
-
-    if (entity.life <= 0) currentApp().delete(entity);
   },
 } as System<"poisons" | "life">);

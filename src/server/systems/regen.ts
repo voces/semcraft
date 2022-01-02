@@ -25,7 +25,7 @@ export const newLifeRegenSystem = () => ({
     // 0 -> 100% takes ~329 seconds (+100)
     entity.life = Math.min(
       entity.life +
-        Math.max((entity.maxLife - entity.life) * 0.01 * delta, 0.1),
+        Math.max((entity.maxLife - entity.life) * 0.01 * delta, 0.1 * delta),
       entity.maxLife,
     );
   },

@@ -75,7 +75,6 @@ export const firebolt: Action<"firebolt"> = (
         semcraft.delete(firebolt);
         if (typeof entity.life === "number" && entity.life > 0) {
           entity.life -= damage;
-          if (entity.life <= 0) semcraft.delete(entity);
         }
       },
     },
