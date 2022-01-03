@@ -9,8 +9,10 @@ export const newAttackSystem = () => ({
 
     // Too far to attack
     if (dist > entity.attack.range) {
-      // Attacker doesn't move, so cancel attack
-      if (!entity.speed) {
+      // Attacker doesn't move or attackee is too far, so cancel attack
+      // TODO: store a home point instead and have units return; this home
+      // point could also be used to keep units "centered" when they randomly wander
+      if (!entity.speed || dist > 25) {
         (entity as Entity).attackTarget = undefined;
         return;
       }

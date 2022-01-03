@@ -16,6 +16,7 @@ export type AffinityTuple<T> = [
   enhance: T,
   passive: T,
   buff: T,
+  space: T,
   speed: T,
 ];
 
@@ -37,6 +38,8 @@ export enum Affinity {
   conjuration,
   /** Animation (skeletons, conjurations, etc). */
   animate,
+  /** Relating to physical space. */
+  space,
   /** Spread capability. Think radiuses. */
   splash,
   /** Enhancing a target, such as one self, a weapon, an ally, or enemy. */

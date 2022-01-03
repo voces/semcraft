@@ -30,8 +30,6 @@ export const commonRuneLogic = (
 
     hero.lockout = sum;
 
-    console.log(sum);
-
     return false;
   }, (hero: Hero, ...manas: number[]) => {
     const final = manas.map((m, i) => m * hero.affinities[affinities[i]]);
