@@ -31,10 +31,7 @@ export const teleport: Action<"teleport"> = (
   const desiredDistance = ((x - hero.x) ** 2 + (y - hero.y) ** 2) ** 0.5;
   const requiredMana = (desiredDistance / 10) ** 2 /
     hero.affinities[Affinity.space];
-  console.log({ desiredDistance, requiredMana, mana });
-  if (requiredMana < mana) {
-    space = mana = requiredMana;
-  }
+  if (requiredMana < mana) space = mana = requiredMana;
 
   // Update affinities and get final manas
   [space] = updateAffinities(hero, space);
@@ -44,7 +41,6 @@ export const teleport: Action<"teleport"> = (
   const maxDistance = space ** 0.5 * 10;
   const finalDistance = Math.min(maxDistance, desiredDistance);
   const angle = Math.atan2(y - hero.y, x - hero.x);
-  console.log({ maxDistance, finalDistance, angle });
 
   hero.x += finalDistance * Math.cos(angle);
   hero.y += finalDistance * Math.sin(angle);
