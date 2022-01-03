@@ -9,6 +9,7 @@ type Unit = Widget & {
 
 export type Hero = Unit & {
   affinities: NonNullable<Widget["affinities"]>;
+  counts: NonNullable<Widget["counts"]>;
   mana: NonNullable<Widget["mana"]>;
   maxLife: NonNullable<Widget["maxLife"]>;
 };
@@ -53,7 +54,6 @@ export const newHero = () =>
     art: { geometry: { type: "cylinder" as const } },
     affinities: initializeAffinities(),
     counts: affinityMap(() => 0),
-    transitions: affinityMap(() => affinityMap(() => 0)),
     life: 100,
     maxLife: 100,
     mana: 0,

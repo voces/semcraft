@@ -1,10 +1,10 @@
 import { currentHero } from "../../hero.ts";
-import { Action, newCooldown } from "./util.ts";
+import { Action, newRateLimit } from "./util.ts";
 
-const onCooldown = newCooldown(100);
+const rateLimited = newRateLimit(100);
 
 export const move: Action<"move"> = (data) => {
   const hero = currentHero();
-  if (onCooldown(hero)) return;
+  if (rateLimited(hero)) return;
   hero.moveTo = { x: data.x, y: data.y };
 };

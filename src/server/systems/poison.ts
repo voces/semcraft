@@ -1,4 +1,3 @@
-import { currentApp } from "../../core/appContext.ts";
 import { Entity } from "../../core/Entity.ts";
 import { System } from "../../core/System.ts";
 

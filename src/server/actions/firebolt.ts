@@ -9,12 +9,15 @@
  */
 
 import { Affinity } from "../../core/Entity.ts";
-import { currentHero, normalizeAffinities } from "../../hero.ts";
+import { currentHero } from "../../hero.ts";
 import { currentSemcraft } from "../../semcraftContext.ts";
 import { setFind } from "../util.ts";
-import { Action, newCooldown } from "./util.ts";
+import { Action, commonRuneLogic } from "./util.ts";
 
-const onCooldown = newCooldown(100);
+const [onCooldown, updateAffinities] = commonRuneLogic(
+  Affinity.fire,
+  Affinity.conjuration,
+);
 
 export const firebolt: Action<"firebolt"> = (
   { x, y, fireMana: fire, conjurationMana: conjuration },
@@ -22,19 +25,10 @@ export const firebolt: Action<"firebolt"> = (
   // Verify spell can be used
   const hero = currentHero();
   const mana = fire + conjuration;
-  if (onCooldown(hero) || hero.mana < mana || mana < 0.1) return;
+  if (hero.mana < mana || mana < 0.1 || onCooldown(hero)) return;
 
-  // Adjust affinities
-  hero.affinities[Affinity.fire] +=
-    (fire * (1 - hero.affinities[Affinity.fire])) ** (1 / 3) / 1000;
-  hero.affinities[Affinity.conjuration] +=
-    (conjuration * (1 - hero.affinities[Affinity.conjuration])) ** (1 / 3) /
-    1000;
-  hero.affinities = normalizeAffinities(hero.affinities);
-
-  // Calculate the mana used in the spell
-  fire *= hero.affinities[Affinity.fire];
-  conjuration *= hero.affinities[Affinity.conjuration];
+  // Update affinities and get final manas
+  [fire, conjuration] = updateAffinities(hero, fire, conjuration);
   hero.mana -= mana;
 
   // Calculate spell components

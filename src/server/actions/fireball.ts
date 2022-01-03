@@ -1,11 +1,15 @@
 import { Affinity } from "../../core/Entity.ts";
-import { currentHero, normalizeAffinities } from "../../hero.ts";
+import { currentHero } from "../../hero.ts";
 import { currentSemcraft } from "../../semcraftContext.ts";
 import { currentGrid } from "../systems/grid.ts";
 import { setFind } from "../util.ts";
-import { Action, newCooldown } from "./util.ts";
+import { Action, commonRuneLogic } from "./util.ts";
 
-const onCooldown = newCooldown(100);
+const [onCooldown, updateAffinities] = commonRuneLogic(
+  Affinity.fire,
+  Affinity.conjuration,
+  Affinity.splash,
+);
 
 export const fireball: Action<"fireball"> = (
   { x, y, fireMana: fire, conjurationMana: conjuration, splashMana: splash },
@@ -13,23 +17,15 @@ export const fireball: Action<"fireball"> = (
   // Verify spell can be used
   const hero = currentHero();
   const mana = fire + conjuration + splash;
-  if (onCooldown(hero) || hero.mana < mana || mana < 0.1) return;
+  if (hero.mana < mana || mana < 0.1 || onCooldown(hero)) return;
 
-  // Adjust affinities
-  hero.affinities[Affinity.fire] +=
-    (fire * (1 - hero.affinities[Affinity.fire])) ** (1 / 3) / 1000;
-  hero.affinities[Affinity.conjuration] +=
-    (conjuration * (1 - hero.affinities[Affinity.conjuration])) ** (1 / 3) /
-    1000;
-  hero.affinities[Affinity.splash] +=
-    (splash * (1 - hero.affinities[Affinity.splash])) ** (1 / 3) /
-    1000;
-  hero.affinities = normalizeAffinities(hero.affinities);
-
-  // Calculate the mana used in the spell
-  fire *= hero.affinities[Affinity.fire];
-  conjuration *= hero.affinities[Affinity.conjuration];
-  splash *= hero.affinities[Affinity.splash];
+  // Update affinities and get final manas
+  [fire, conjuration, splash] = updateAffinities(
+    hero,
+    fire,
+    conjuration,
+    splash,
+  );
   hero.mana -= mana;
 
   // Calculate spell components

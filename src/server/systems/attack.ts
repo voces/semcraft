@@ -29,12 +29,13 @@ export const newAttackSystem = () => ({
     // Clear moveTo
     if (entity.moveTo) entity.moveTo = undefined;
 
-    if ((entity.lockout ?? 0) > 0) return;
-
-    console.log("swing");
+    if (entity.lockout) return;
 
     entity.lockout = entity.attack.cooldown;
     entity.attackTarget.life = (entity.attackTarget.life ?? 0) -
       entity.attack.damage;
+    if (entity.attackTarget.life < 0) {
+      (entity as Entity).attackTarget = undefined;
+    }
   },
 } as System<"x" | "y" | "attackTarget" | "attack">);

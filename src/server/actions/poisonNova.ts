@@ -1,10 +1,13 @@
 import { Affinity } from "../../core/Entity.ts";
-import { currentHero, normalizeAffinities } from "../../hero.ts";
+import { currentHero } from "../../hero.ts";
 import { currentSemcraft } from "../../semcraftContext.ts";
 import { addPoison, setFind } from "../util.ts";
-import { Action, newCooldown } from "./util.ts";
+import { Action, commonRuneLogic } from "./util.ts";
 
-const onCooldown = newCooldown(100);
+const [onCooldown, updateAffinities] = commonRuneLogic(
+  Affinity.poison,
+  Affinity.conjuration,
+);
 
 export const poisonNova: Action<"poisonNova"> = (
   { x, y, poisonMana: poison, conjurationMana: conjuration },
@@ -12,23 +15,10 @@ export const poisonNova: Action<"poisonNova"> = (
   // Verify spell can be used
   const hero = currentHero();
   const mana = poison + conjuration;
-  const a = onCooldown(hero);
-  if (a || hero.mana < mana || mana < 0.1) {
-    console.log(a, hero.mana, mana);
-    return;
-  }
+  if (hero.mana < mana || mana < 0.1 || onCooldown(hero)) return;
 
-  // Adjust affinities
-  hero.affinities[Affinity.poison] +=
-    (poison * (1 - hero.affinities[Affinity.poison])) ** (1 / 3) / 1000;
-  hero.affinities[Affinity.conjuration] +=
-    (conjuration * (1 - hero.affinities[Affinity.conjuration])) ** (1 / 3) /
-    1000;
-  hero.affinities = normalizeAffinities(hero.affinities);
-
-  // Calculate the mana used in the spell
-  poison *= hero.affinities[Affinity.poison];
-  conjuration *= hero.affinities[Affinity.conjuration];
+  // Update affinities and get final manas
+  [poison, conjuration] = updateAffinities(hero, poison, conjuration);
   hero.mana -= mana;
 
   // Calculate spell components

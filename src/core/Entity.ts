@@ -113,9 +113,6 @@ export type Entity = {
   /** The number of times the entity has used each rune. */
   counts?: AffinityTuple<number>;
 
-  /** The number of times the entity has transitioned between each rune. */
-  transitions?: AffinityTuple<AffinityTuple<number>>;
-
   /** Poisons the entity is inflicted with. */
   poisons?: { damage: number; remaining: number }[];
 
