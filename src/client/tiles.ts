@@ -61,7 +61,7 @@ const canvasTexture = (
 ): Texture => {
   if (textures[map[idx]]) return textures[map[idx]];
 
-  const texture = new Texture();
+  const texture = textures[map[idx]] = new Texture();
 
   queueMicrotask(() => {
     try {

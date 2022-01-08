@@ -1,5 +1,4 @@
 import { affinityCount, AffinityTuple, Widget } from "./core/Entity.ts";
-import { currentSemcraft } from "./semcraftContext.ts";
 import { data } from "./util/data.ts";
 
 /** An entity representing a unit. */
@@ -46,21 +45,25 @@ const initializeAffinities = (): AffinityTuple<number> =>
 //     (item) => item ** 3,
 //   ) as AffinityTuple<number>;
 
-export const newHero = () =>
-  currentSemcraft().add({
-    x: (Math.random() - 0.5) * 10,
-    y: (Math.random() - 0.5) * 10,
-    speed: 5,
-    art: { geometry: { type: "cylinder" as const } },
-    affinities: initializeAffinities(),
-    counts: affinityMap(() => 0),
-    life: 100,
-    maxLife: 100,
-    mana: 0,
-    beforeDelete: (e) => {
-      e.x = (Math.random() - 0.5) * 10;
-      e.y = (Math.random() - 0.5) * 10;
-      e.life = e.maxLife;
-      return false;
-    },
-  }) as Hero;
+export const newHero = () => ({
+  // deno-lint-ignore no-explicit-any
+  entityId: (crypto as any).randomUUID(),
+  isHero: true,
+  x: (Math.random() - 0.5) * 10,
+  y: (Math.random() - 0.5) * 10,
+  speed: 5,
+  art: { geometry: { type: "cylinder" as const } },
+  affinities: initializeAffinities(),
+  counts: affinityMap(() => 0),
+  life: 100,
+  maxLife: 100,
+  mana: 0,
+  // TODO: we can't send this entity through the tubes because of this hook
+  // We can avoid this by adding {transformers: [fnName: string, ...args: unknown[]][]}
+  // beforeDelete: (e) => {
+  //   e.x = (Math.random() - 0.5) * 10;
+  //   e.y = (Math.random() - 0.5) * 10;
+  //   e.life = e.maxLife;
+  //   return false;
+  // },
+} as Hero);

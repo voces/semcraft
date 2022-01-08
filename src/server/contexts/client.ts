@@ -1,11 +1,11 @@
 import { Widget } from "../../core/Entity.ts";
 import { Hero } from "../../hero.ts";
 
+export type Port = MessagePort | BroadcastChannel;
+
 export type Client = {
-  port: MessagePort;
   hero: Hero;
   knownEntities: Set<Widget>;
-  close: () => void;
 };
 
 let _client = null as unknown as Client;

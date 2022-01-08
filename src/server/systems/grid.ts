@@ -7,10 +7,10 @@ import { Grid } from "../../util/Grid.ts";
 const { current: currentGrid, set } = data<Grid<Widget>>();
 export { currentGrid };
 
-export const newGrid = () => {
+export const newGrid = (xOffet: number, yOffset: number) => {
   const grid = new Grid<Widget>(
-    -SIZE / 2,
-    SIZE / 2,
+    -SIZE / 2 + xOffet * SIZE,
+    SIZE / 2 + yOffset * SIZE,
     SIZE / 8,
   );
   set(grid);
@@ -18,8 +18,7 @@ export const newGrid = () => {
   return {
     props: ["x", "y"],
     onAdd: (entity) => grid.add(entity),
-    // deno-lint-ignore no-explicit-any
-    onRemove: (entity) => grid.delete(entity as any),
+    onRemove: (entity) => grid.delete(entity as Widget),
     onChange: (entity) => grid.update(entity),
   } as System<"x" | "y">;
 };

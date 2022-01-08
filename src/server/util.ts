@@ -1,3 +1,4 @@
+import { WriteLogEntry } from "../core/App.ts";
 import { Entity } from "../core/Entity.ts";
 
 export const setFind = <T>(set: ReadonlySet<T>, fn: (item: T) => boolean) => {
@@ -47,3 +48,29 @@ export const addPoison = (entity: Entity, damage: number, duration: number) => {
   // All existing poisons do more damage, append to end
   poisons.push({ damage, remaining });
 };
+
+const publicAttributes = [
+  "art",
+  "deleted",
+  "entityId",
+  "isTerrain",
+  "moveAlong",
+  "moveTo",
+  "name",
+  "owner",
+  "speed",
+  "x",
+  "y",
+];
+const ownerAttributes = [
+  "life",
+  "mana",
+  "maxLife",
+];
+
+export const scrub = (write: WriteLogEntry | Entity, owned: boolean) =>
+  Object.fromEntries(
+    Object.entries(write).filter(([k]) =>
+      publicAttributes.includes(k) || (owned && ownerAttributes.includes(k))
+    ),
+  );

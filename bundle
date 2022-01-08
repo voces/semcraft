@@ -1,6 +1,7 @@
 esbuild "$@" \
     src/client/index.ts \
-    src/server/index.ts \
+    src/server/localBridge.ts \
+    src/server/localNode.ts \
     --bundle --splitting --format=esm --tsconfig=deno.jsonc \
     --external:three --external:preact/hooks --external:preact \
     --outdir=public/js

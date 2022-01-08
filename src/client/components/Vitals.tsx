@@ -62,7 +62,7 @@ const Vitals = ({ unit }: { unit: Unit }) => (
       }}
     >
       <Text dropShadow={3} style={{ paddingLeft: 6 }}>
-        Entity {unit.entityId}
+        Entity {unit.entityId.slice(-8)}
       </Text>
       <Bar
         value={unit.life}

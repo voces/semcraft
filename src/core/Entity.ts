@@ -1,4 +1,5 @@
 import type { ColorRepresentation, Mesh } from "three";
+import { Client } from "../server/contexts/client.ts";
 import { currentApp } from "./appContext.ts";
 
 export type AffinityTuple<T> = [
@@ -58,7 +59,7 @@ export type DecisionTree = {
 };
 
 export type Entity = {
-  entityId: number;
+  entityId: string;
 
   /** User visible name of the entity. */
   name?: string;
@@ -151,9 +152,6 @@ export type Entity = {
   /** Give the entity automated actions. */
   ai?: DecisionTree;
 
-  /** A flag to turn on/off AI for entities. Useful for entities that are off-screen. */
-  aiActive?: boolean;
-
   /** Like setTimeout, but via the Entity-Component-System. */
   timeout?: {
     /** Seconds remaining until callback is invoked. */
@@ -176,11 +174,17 @@ export type Entity = {
   /** A flag to mark the entity as a piece of terrain. */
   isTerrain?: boolean;
 
+  /** A reference to an actual client, indicating the entity is a Hero. */
+  client?: Client;
+
   /**
    * A callback that is called before the entity is deleted. If the callback
    * returns false, the entity is not deleted.
    */
   beforeDelete?: (entity: Entity) => void | boolean;
+
+  /** Flag for hero entity. */
+  isHero?: boolean;
 };
 
 /** An entity with a position. */

@@ -12,4 +12,4 @@ export const newAISystem = () => ({
       if (typeof cur === "function") return cur(entity);
     }
   },
-} as System<"x" | "y" | "ai" | "aiActive">);
+} as System<"x" | "y" | "ai" | "active">);

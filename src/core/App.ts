@@ -4,7 +4,7 @@ import { Entity, newEntity } from "./Entity.ts";
 import { System } from "./System.ts";
 
 export type WriteLogEntry = Partial<Entity> & {
-  entityId: number;
+  entityId: string;
   x: number;
   y: number;
   deleted?: true;
@@ -53,8 +53,7 @@ export const newApp = (partialApp: Partial<App>): App => {
   const childPropMap: Partial<Record<keyof Entity, System<keyof Entity>[]>> =
     {};
 
-  let entityId = 0;
-  const entities: Record<number, Entity> = {};
+  const entities: Record<string, Entity> = {};
 
   const systemsEntities = new Map<System<keyof Entity>, Set<Entity>>();
 
@@ -168,7 +167,8 @@ export const newApp = (partialApp: Partial<App>): App => {
         ? partialEntity as Entity
         : newEntity(
           Object.assign(partialEntity, {
-            entityId: partialEntity.entityId ?? (entityId++),
+            // deno-lint-ignore no-explicit-any
+            entityId: partialEntity.entityId ?? (crypto as any).randomUUID(),
           }),
         );
 
@@ -188,7 +188,8 @@ export const newApp = (partialApp: Partial<App>): App => {
         if (system) {
           const entities = systemsEntities.get(system);
           if (
-            entities && system.props?.every((prop) => entity[prop] != null)
+            entities && system.props?.every((prop) => entity[prop] != null) &&
+            !entities.has(entity)
           ) {
             entities.add(entity);
             // deno-lint-ignore no-explicit-any
