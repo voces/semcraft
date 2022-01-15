@@ -12,6 +12,9 @@ export const data = <T>() => {
       }
       return datum!;
     },
+    tryGetHero: () => {
+      return map.get(currentSemcraft());
+    },
     set: (value: T) => {
       map.set(currentSemcraft(), value);
     },

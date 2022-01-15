@@ -53,6 +53,7 @@ const publicAttributes = [
   "art",
   "deleted",
   "entityId",
+  "isHero",
   "isTerrain",
   "moveAlong",
   "moveTo",

@@ -17,7 +17,7 @@ const grid = Array.from(
     Array.from(Array(SIZE), () => Math.random() * Math.random() < 0.5 ? 0 : 1),
 );
 
-export const tiles = () => {
+export const tiles = (xOffset: number, yOffset: number) => {
   const semcraft = currentSemcraft();
 
   for (let y = 0; y < SIZE; y++) {
@@ -33,14 +33,18 @@ export const tiles = () => {
         (grid[y + 1]?.[x + 1] ?? 0) * BOTRIGHT;
 
       const entity = {
-        x: (x - SIZE / 2) + 0.5,
-        y: (y - SIZE / 2) + 0.5,
+        x: xOffset + (x - SIZE / 2) + 0.5,
+        y: yOffset + (y - SIZE / 2) + 0.5,
         isTerrain: true,
         art: {
           geometry: { type: "plane" as const },
           material: { type: "tile" as const, index: matIdx },
         },
       };
+
+      if (entity.y === 30) {
+        console.log(entity.x, entity.y);
+      }
 
       semcraft.add(entity);
     }

@@ -3,6 +3,7 @@ import { fireball } from "./fireball.ts";
 import { firebolt } from "./firebolt.ts";
 import { move } from "./move.ts";
 import { poisonNova } from "./poisonNova.ts";
+import { stageEntity } from "./stageEntity.ts";
 import { teleport } from "./teleport.ts";
 import { transferEntity } from "./transferEntity.ts";
 
@@ -14,4 +15,5 @@ export const actions = {
   fireball,
   teleport,
   transferEntity,
+  stageEntity,
 };

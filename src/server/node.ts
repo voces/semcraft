@@ -9,19 +9,26 @@ import { timers } from "./systems/timers.ts";
 import { tiles } from "./tiles.ts";
 import { Grid } from "../util/Grid.ts";
 import { collision } from "./systems/collision.ts";
-import { SIZE } from "../constants.ts";
+import { AREA_OF_KNOWLEDGE, SIZE } from "../constants.ts";
 import { newLifeRegenSystem, newManaRegenSystem } from "./systems/regen.ts";
-import { Client } from "./contexts/client.ts";
+import { Client, Port } from "./contexts/client.ts";
 import { newPoisonSystem } from "./systems/poison.ts";
 import { newAISystem } from "./systems/ai.ts";
 import { newAttackSystem } from "./systems/attack.ts";
 import { newLockoutSystem } from "./systems/lockouts.ts";
 import { newDeathSystem } from "./systems/death.ts";
-import { System } from "../core/System.ts";
 import { setHero } from "../hero.ts";
 import { scrub } from "./util.ts";
+import { data } from "../util/data.ts";
+import { newTransferSystem } from "./systems/transferSystem.ts";
 
-export const AREA_OF_KNOWLEDGE = 20;
+console.clear();
+
+const { current: getChannel, set: setChannel } = data<Port>();
+const { current: getClients, set: setClients } = data<
+  Map<Entity["entityId"], Client>
+>();
+export { getChannel, getClients };
 
 export const newNode = (x: number, y: number) => {
   const semcraft = newSemcraft();
@@ -32,7 +39,7 @@ export const newNode = (x: number, y: number) => {
     "message",
     wrapSemcraft(semcraft, (ev) => {
       const data = ev.data;
-      console.log("received", data);
+      console.log(`received (self)`, data);
       const client = clients.get(data.client);
       if (client) setHero(client.hero);
       actions[data.action as keyof typeof actions]?.(data);
@@ -44,74 +51,74 @@ export const newNode = (x: number, y: number) => {
   setInterval(
     wrapSemcraft(semcraft, () => {
       semcraft.update((writeLog) => {
-        if (writeLog.size) {
-          // console.log(
-          //   "found",
-          //   writeLog.size,
-          //   "updates for",
-          //   clients.size,
-          //   "clients",
-          // );
-          for (const client of clients.values()) {
-            try {
-              if (!client.hero) continue;
+        // console.log(
+        //   "found",
+        //   writeLog.size,
+        //   "updates for",
+        //   clients.size,
+        //   "clients",
+        // );
+        for (const client of clients.values()) {
+          try {
+            if (!client.hero) continue;
 
-              const writes: WriteLogEntry[] = [];
+            const writes: WriteLogEntry[] = [];
 
-              // Send newly known entities in full
-              const nearEntities = new Set(grid.queryPoint(
+            // Send newly known entities in full
+            const nearEntities = new Set(grid.queryPoint(
+              client.hero.x,
+              client.hero.y,
+              AREA_OF_KNOWLEDGE,
+              true,
+            ));
+            const newEntities = new Set<Widget>();
+            const newEntityIds = new Set<string>();
+            for (const entity of nearEntities) {
+              if (
+                !client.knownEntities.has(entity)
+              ) {
+                newEntities.add(entity);
+                newEntityIds.add(entity.entityId);
+                writes.push(entity);
+                entity.active = (entity.active ?? 0) + 1;
+              }
+            }
+
+            // Send updated entities in patches
+            for (
+              const write of writeLog.queryPoint(
                 client.hero.x,
                 client.hero.y,
                 AREA_OF_KNOWLEDGE,
                 true,
-              ));
-              const newEntities = new Set<Widget>();
-              const newEntityIds = new Set<string>();
-              for (const entity of nearEntities) {
-                if (
-                  !client.knownEntities.has(entity)
-                ) {
-                  newEntities.add(entity);
-                  newEntityIds.add(entity.entityId);
-                  writes.push(entity);
-                  entity.active = (entity.active ?? 0) + 1;
-                }
+              )
+            ) {
+              if (!newEntityIds.has(write.entityId)) writes.push(write);
+            }
+
+            // Delete entities that are no longer in view
+            for (const entity of client.knownEntities) {
+              if (!nearEntities.has(entity)) {
+                writes.push({
+                  entityId: entity.entityId,
+                  x: entity.x,
+                  y: entity.y,
+                  deleted: true,
+                });
+                if (entity.active! <= 1) entity.active = undefined;
+                else entity.active = (entity.active ?? 0) - 1;
               }
+            }
+            client.knownEntities = nearEntities;
 
-              // Send updated entities in patches
-              for (
-                const write of writeLog.queryPoint(
-                  client.hero.x,
-                  client.hero.y,
-                  AREA_OF_KNOWLEDGE,
-                  true,
-                )
-              ) {
-                if (!newEntityIds.has(write.entityId)) writes.push(write);
-              }
+            // console.log(
+            //   "sending",
+            //   writes.length,
+            //   "updates to client",
+            // );
 
-              // Delete entities that are no longer in view
-              for (const entity of client.knownEntities) {
-                if (!nearEntities.has(entity)) {
-                  writes.push({
-                    entityId: entity.entityId,
-                    x: entity.x,
-                    y: entity.y,
-                    deleted: true,
-                  });
-                  if (entity.active! <= 1) entity.active = undefined;
-                  else entity.active = (entity.active ?? 0) - 1;
-                }
-              }
-              client.knownEntities = nearEntities;
-
-              // console.log(
-              //   "sending",
-              //   writes.length,
-              //   "updates to client",
-              // );
-
-              // TODO: Setup a channel for each bridge, and group messages by bridge
+            // TODO: Setup a channel for each bridge, and group messages by bridge
+            if (writes.length) {
               channel.postMessage(
                 [
                   Object.fromEntries(writes.map((
@@ -123,11 +130,11 @@ export const newNode = (x: number, y: number) => {
                   { [client.hero.entityId]: writes.map((w) => w.entityId) },
                 ],
               );
-            } catch (err) {
-              console.error(err);
-              if (client.hero) semcraft.delete(client.hero);
-              clients.delete(client.hero.entityId);
             }
+          } catch (err) {
+            console.error(err);
+            if (client.hero) semcraft.delete(client.hero);
+            clients.delete(client.hero.entityId);
           }
         }
       });
@@ -139,9 +146,11 @@ export const newNode = (x: number, y: number) => {
 
   // Initialize the world
   withSemcraft(semcraft, () => {
+    setChannel(channel);
+    setClients(clients);
     semcraft.addSystem(moveToServer());
     semcraft.addSystem(moveAlongServer());
-    semcraft.addSystem(newGrid(0, 0));
+    semcraft.addSystem(newGrid(x, y));
     semcraft.addSystem(timers());
     semcraft.addSystem(collision());
     semcraft.addSystem(newManaRegenSystem());
@@ -151,40 +160,17 @@ export const newNode = (x: number, y: number) => {
     semcraft.addSystem(newAttackSystem());
     semcraft.addSystem(newLockoutSystem());
     semcraft.addSystem(newDeathSystem());
-    semcraft.addSystem({
-      props: [
-        "isHero",
-        "x",
-        "y",
-        "life",
-        "affinities",
-        "counts",
-        "mana",
-        "maxLife",
-      ],
-      onAdd: (hero) =>
-        clients.set(hero.entityId, { hero, knownEntities: new Set() }),
-      onRemove: (hero) => clients.delete(hero.entityId),
-    } as System<
-      | "isHero"
-      | "x"
-      | "y"
-      | "life"
-      | "affinities"
-      | "counts"
-      | "mana"
-      | "maxLife"
-    >);
+    semcraft.addSystem(newTransferSystem(x, y));
 
     grid = currentGrid();
 
-    tiles();
+    tiles(x * SIZE, y * SIZE);
 
     const beforeDelete = () => {
       let near: Widget[];
       return semcraft.add({
-        x: Math.round((Math.random() - 0.5) * SIZE * 100) / 100,
-        y: Math.round((Math.random() - 0.5) * SIZE * 100) / 100,
+        x: x * SIZE + Math.round((Math.random() - 0.5) * SIZE * 100) / 100,
+        y: y * SIZE + Math.round((Math.random() - 0.5) * SIZE * 100) / 100,
         life: 25,
         beforeDelete,
         art: { geometry: { type: "cylinder" } },
@@ -223,7 +209,7 @@ export const newNode = (x: number, y: number) => {
       });
     };
 
-    for (let i = 0; i < 100; i++) beforeDelete();
+    for (let i = 0; i < 50; i++) beforeDelete();
   });
 
   console.log("newNode", x, y);

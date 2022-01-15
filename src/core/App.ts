@@ -109,6 +109,9 @@ export const newApp = (partialApp: Partial<App>): App => {
 
   if (!app.onEntityPropChange) {
     app.onEntityPropChange = (entity, property) => {
+      // Ignore changes on entities not added
+      if (!entities[entity.entityId]) return;
+
       // Update write log
       if (writeLog.has(entity)) {
         writeLog.patch(entity, { [property]: entity[property] });
@@ -146,9 +149,7 @@ export const newApp = (partialApp: Partial<App>): App => {
 
           // Slow path; we might need to add the entity to the system, so we
           // must check all required props
-          const next = system.props?.every((prop: keyof Entity) =>
-            entity[prop] != null
-          ) ??
+          const next = system.props?.every((prop) => entity[prop] != null) ??
             false;
           if (next) {
             entities?.add(entity);
@@ -171,6 +172,12 @@ export const newApp = (partialApp: Partial<App>): App => {
             entityId: partialEntity.entityId ?? (crypto as any).randomUUID(),
           }),
         );
+
+      // Don't add the same entity multiple times
+      if (entities[entity.entityId]) {
+        console.warn("Adding already added entity", entity.entityId);
+        return entities[entity.entityId];
+      }
 
       entities[entity.entityId] = entity;
 
@@ -257,11 +264,17 @@ export const newApp = (partialApp: Partial<App>): App => {
         // Existing entity
         if (patch.entityId in entities) {
           // That's deleted
-          if (patch.deleted) app.delete(entities[patch.entityId]);
-          // Otherwise just update it
+          if (patch.deleted) {
+            if (!entities[patch.entityId]?.isHero) {
+              app.delete(entities[patch.entityId]);
+            }
+          } // Otherwise just update it
           else Object.assign(entities[patch.entityId], patch);
           // Non-existing entity that isn't being deleted
-        } else if (!patch.deleted) app.add(patch);
+        } else if (!patch.deleted) {
+          if ("name" in patch) console.log({ ...patch });
+          app.add(patch);
+        }
       }
     };
   }

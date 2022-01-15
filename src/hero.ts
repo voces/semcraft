@@ -13,8 +13,9 @@ export type Hero = Unit & {
   maxLife: NonNullable<Widget["maxLife"]>;
 };
 
-const { current: currentHero, set: setHero } = data<Hero>();
-export { currentHero, setHero };
+// TODO: This should just alias on client.hero
+const { current: currentHero, set: setHero, tryGetHero } = data<Hero>();
+export { currentHero, setHero, tryGetHero };
 
 const affinityMap = <T>(fn: (index: number) => T) =>
   Array.from(Array(affinityCount + 1), (_, k) => fn(k)) as AffinityTuple<T>;
@@ -48,9 +49,12 @@ const initializeAffinities = (): AffinityTuple<number> =>
 export const newHero = () => ({
   // deno-lint-ignore no-explicit-any
   entityId: (crypto as any).randomUUID(),
+  name: "Hero",
   isHero: true,
-  x: (Math.random() - 0.5) * 10,
-  y: (Math.random() - 0.5) * 10,
+  x: 0,
+  y: 0,
+  // x: (Math.random() - 0.5) * 10,
+  // y: (Math.random() - 0.5) * 10,
   speed: 5,
   art: { geometry: { type: "cylinder" as const } },
   affinities: initializeAffinities(),

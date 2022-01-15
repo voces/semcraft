@@ -1,13 +1,16 @@
-// deno-lint-ignore-file no-explicit-any
 import { SIZE } from "../constants.ts";
 import { Hero, newHero } from "../hero.ts";
 import { isArray, isRecord } from "../typeguards.ts";
 import { Port } from "./contexts/client.ts";
 import { scrub } from "./util.ts";
 
+console.clear();
+
 type ServerNode = {
   broadcastChannel: BroadcastChannel;
-  clients: number;
+  clients: Set<Client>;
+  x: number;
+  y: number;
 };
 
 type Client = {
@@ -32,6 +35,7 @@ const isAction = <T extends Record<string, unknown> & { action: string }>(
   typeof message === "object" &&
   !!message &&
   "action" in message &&
+  // deno-lint-ignore no-explicit-any
   typeof (message as any).action === "string";
 
 const handleMessage = (data: unknown, node: ServerNode, client?: Client) => {
@@ -43,20 +47,68 @@ const handleMessage = (data: unknown, node: ServerNode, client?: Client) => {
       if (!client) continue;
       client.port.postMessage(clientMap[clientId].map((w) => writeMap[w]));
     }
+    return;
   }
+
+  console.log(`received (${node.x}, ${node.y})`, data);
 
   if (!isRecord(data)) return;
 
   if (data.action === "started" && client) {
-    node.clients++;
+    // TODO: This should be done with a queue....
     node.broadcastChannel.postMessage({
       action: "transferEntity",
       entity: client.hero,
     });
-    client.node = node.broadcastChannel;
+    return;
   }
 
-  client?.port.postMessage(data);
+  // x/y is the new node, not current. We must receive this message from the
+  // old node as we may not be listening to the new one
+  if (data.action === "stage") {
+    const client = clients[data.client as string];
+    if (client) {
+      const node = nodes[`${data.x}, ${data.y}`];
+      if (node) {
+        node.clients.add(client);
+        return;
+      }
+
+      console.log("opening broadcast with", data.x, data.y);
+
+      // TODO: Should centralizing opening broadcast channels to standardize
+      // client counting
+      const broadcastChannel = new BroadcastChannel(
+        `Semcraft (${data.x}, ${data.y})`,
+      );
+      nodes[`${data.x}, ${data.y}`] = {
+        broadcastChannel,
+        clients: new Set([client]),
+        x: data.x as number,
+        y: data.y as number,
+      };
+      broadcastChannel.addEventListener(
+        "message",
+        (ev) => handleMessage(ev.data, nodes[`${data.x}, ${data.y}`]),
+      );
+    }
+    return;
+  }
+
+  // This message comes from the new node. We should have started listening due
+  // to the above stage.
+  if (data.action === "transfer") {
+    const client = clients[data.client as string];
+    if (client) {
+      client.node = node.broadcastChannel;
+      console.log("adjusting client node");
+    } else {
+      console.log("unknown client?");
+    }
+    return;
+  }
+
+  (client ?? clients[data.client as string])?.port.postMessage(data);
 };
 
 export const newClient = (
@@ -76,7 +128,6 @@ export const newClient = (
     },
   };
 
-  // client.port.postMessage(scrub(hero, true));
   clients[hero.entityId] = client;
 
   console.log("client", hero.entityId, "connected");
@@ -89,14 +140,12 @@ export const newClient = (
 
       if (!isAction(data)) return;
 
-      console.log("recieved", data);
+      console.log("received (client)", data);
 
       data.client = client.hero.entityId;
 
+      // TODO: Validate these messages, especially `.action`
       client.node?.postMessage(data);
-
-      // setHero(hero);
-      // actions[event.data.action as keyof typeof actions]?.(event.data);
     },
   );
 
@@ -104,7 +153,7 @@ export const newClient = (
 
   const node = nodes[`${x}, ${y}`];
   if (node) {
-    node.clients++;
+    node.clients.add(client);
     node.broadcastChannel.postMessage({
       action: "transferEntity",
       entity: client.hero,
@@ -113,7 +162,7 @@ export const newClient = (
   } else {
     const broadcastChannel = new BroadcastChannel(`Semcraft (${x}, ${y})`);
 
-    nodes[`${x}, ${y}`] = { broadcastChannel, clients: 0 };
+    nodes[`${x}, ${y}`] = { broadcastChannel, clients: new Set(), x, y };
 
     let init = false;
     broadcastChannel.addEventListener("message", (ev) => {

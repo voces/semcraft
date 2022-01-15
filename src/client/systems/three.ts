@@ -50,13 +50,6 @@ export const three = (canvas: HTMLCanvasElement) => {
     props: ["x", "y", "mesh"],
     update: () => {
       renderer.render(scene, camera);
-      try {
-        const hero = currentHero();
-        if (hero.mesh) {
-          camera.position.x = hero.mesh.position.x;
-          camera.position.y = hero.mesh.position.y;
-        }
-      } catch { /* do nothing */ }
     },
     onAdd: (entity) => {
       entity.mesh.position.x = entity.x;

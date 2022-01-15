@@ -14,6 +14,7 @@ export const newServer = (type: "local" | "remote") => {
       "message",
       wrapSemcraft(semcraft, (ev) => {
         if (Array.isArray(ev.data)) {
+          // console.log(...ev.data);
           semcraft.patch(ev.data);
           return;
         }

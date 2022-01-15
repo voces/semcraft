@@ -6,6 +6,7 @@ import { newClient } from "../client.ts";
 import { SemcraftContext } from "../contexts/SemcraftContext.ts";
 import { Controls } from "../controls.ts";
 import { ActionBar } from "./ActionBar.tsx";
+import { Position } from "./Position.tsx";
 import { VitalsBoard } from "./Vitals.tsx";
 
 export const HUD = () => {
@@ -47,6 +48,7 @@ export const HUD = () => {
         <SemcraftContext.Provider value={app}>
           <VitalsBoard />
           <ActionBar controls={controls} />
+          <Position />
         </SemcraftContext.Provider>
       )}
     </>
