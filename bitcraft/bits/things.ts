@@ -45,11 +45,12 @@ export type Amulet = { amulet: true };
 export type Charm = { charm: true };
 export type Jewel = { jewel: true };
 
-// Everything is either Undead, Demon, Monster, or Player
+// Every thing is one of the below (or an Item)
 export type Undead = { undead: true };
 export type Demon = { demon: true };
 export type Monster = { monster: true };
 export type Player = { player: true };
+export type Structure = { structure: true };
 
 export type Enemy = { enemy: true };
 export type Ally = { ally: true };

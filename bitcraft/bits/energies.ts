@@ -33,3 +33,5 @@ export type Physical = { physical: true };
 export type Poison = { poison: true };
 // /** Mind magics. */
 // export type Mental = { mental: true };
+
+export type Elemental = Fire & Cold & Lightning & Poison;

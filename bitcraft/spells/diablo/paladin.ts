@@ -1,4 +1,5 @@
 import {
+  Ally,
   AttackRating,
   AttackSpeed,
   Aura,
@@ -40,7 +41,10 @@ export type ResistCold = Aura & Cold & Resistance;
 // aura that increases fire damage of nearby allies
 export type HolyFire = Aura & Enemy & Fire;
 export type Thorns = Aura & Reflect;
-export type HolyBolt = Magic & Bolt & Demon;
+export type HolyBolt =
+  & Magic
+  & Bolt
+  & ((Ally & LifeRegen) | (Enemy & (Demon | Undead)));
 
 // export type Cleansing = Aura;
 export type ResistLightning = Aura & Lightning & Resistance;
